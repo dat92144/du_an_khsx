@@ -25,6 +25,11 @@
                         📝 Đơn hàng SX
                     </router-link>
                 </li>
+                <li>
+                    <router-link to="/orders" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
+                        📝 Máy móc
+                    </router-link>
+                </li>
             </ul>
         </nav>
     </aside>

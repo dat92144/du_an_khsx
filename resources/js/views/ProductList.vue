@@ -1,10 +1,10 @@
 <template>
     <div class="container mt-4">
       <h2>🚲 Danh sách Sản Phẩm</h2>
-  
+
       <!-- Nút Thêm -->
       <button class="btn btn-success mb-3" @click="openAddModal">➕ Thêm Sản Phẩm</button>
-  
+
       <!-- Bảng sản phẩm -->
       <table class="table table-striped">
         <thead>
@@ -40,14 +40,14 @@
                 <SpecList :productId="currentProduct.id" />
 
                 <hr />
-                <h5>📐 Thuộc tính & Giá trị</h5>
+                <h5>🧩 Thuộc tính kỹ thuật</h5>
                 <SpecAttributes :productId="currentProduct.id" />
                 </div>
             </td>
             </tr>
         </tbody>
       </table>
-  
+
       <!-- Modal Thêm/Sửa -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
@@ -74,14 +74,14 @@
       </div>
     </div>
   </template>
-  
+
   <script>
   import { mapState, mapActions } from 'vuex';
   import BomList from '../components/BomList.vue';
   import SpecList from '../components/SpecList.vue';
   import SpecAttributes from '../components/SpecAttributes.vue';
   import '@/assets/modal.css';
-  
+
   export default {
     components: { BomList, SpecList, SpecAttributes },
     data() {
@@ -141,4 +141,3 @@
     }
   };
   </script>
-  

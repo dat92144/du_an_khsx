@@ -14,6 +14,10 @@ use App\Http\Controllers\ProcessController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BomController;
 use App\Http\Controllers\BomItemController;
+use App\Http\Controllers\SpecController;
+use App\Http\Controllers\SpecAttributeController;
+use App\Http\Controllers\SpecAttributeValueController;
+
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
@@ -45,6 +49,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:Admin')->get('/boms/{bom}/items', [BomItemController::class, 'index']);
     Route::middleware('permission:Admin')->post('/boms/{bom}/items', [BomItemController::class, 'store']);
     Route::middleware('permission:Admin')->delete('/bom-items/{id}', [BomItemController::class, 'destroy']);
+    Route::middleware('permission:Admin')->get('/specs', [SpecController::class, 'index']);
+    Route::middleware('permission:Admin')->post('/specs', [SpecController::class, 'store']);
+    Route::middleware('permission:Admin')->put('/specs/{id}', [SpecController::class, 'update']);
+    Route::middleware('permission:Admin')->delete('/specs/{id}', [SpecController::class, 'destroy']);
+    Route::middleware('permission:Admin')->apiResource('spec-attributes', SpecAttributeController::class);
+    Route::middleware('permission:Admin')->apiResource('spec-attribute-values', SpecAttributeValueController::class);
+
 
 
 });

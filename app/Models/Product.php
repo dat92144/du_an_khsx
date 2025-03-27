@@ -18,5 +18,18 @@ class Product extends Model
     {
         return $this->hasMany(BomItem::class);
     }
+    public function Specs()
+    {
+        return $this->hasMany(Spec::class);
+    }
+    public function SpecAttributes()
+    {
+        return $this->hasMany(SpecAttribute::class);
+    }
+    public function SpecAttributeValues()
+    {
+        return $this->hasMany(SpecAttributeValue::class);
+    }
+
 }
 

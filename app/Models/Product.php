@@ -10,6 +10,7 @@ class Product extends Model
     protected $primaryKey = 'id';
     protected $keyType = 'string';
     protected $fillable = ['id', 'name', 'description'];
+    public $incrementing = false;
     public function BOM(){
         return $this->belongsTo(Bom::class);
     }

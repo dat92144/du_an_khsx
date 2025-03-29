@@ -16,11 +16,6 @@
                     </router-link>
                 </li>
                 <li>
-                    <router-link to="/materials" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
-                        📦 Định mức NVL
-                    </router-link>
-                </li>
-                <li>
                     <router-link to="/orders" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
                         📝 Đơn hàng SX
                     </router-link>
@@ -43,16 +38,6 @@
                 <li>
                     <router-link to="/products" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
                         📦 Sản phẩm
-                    </router-link>
-                </li>
-                <li>
-                    <router-link to="/boms" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
-                        📋 Cấu trúc BOM
-                    </router-link>
-                </li>
-                <li>
-                    <router-link to="/specs" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
-                        ⚙️ Thông số kỹ thuật
                     </router-link>
                 </li>
             </ul>

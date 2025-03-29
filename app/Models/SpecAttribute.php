@@ -10,8 +10,7 @@ class SpecAttribute extends Model
     protected $primaryKey = 'id';
     protected $keyType = 'string';
     protected $fillable = [
-        'id', 'spec_id', 'name',
-        'value', 'attribute_type'
+        'id', 'spec_id', 'name', 'attribute_type'
     ];
     public function product()
     {

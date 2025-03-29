@@ -17,7 +17,6 @@ class SpecAttributeController extends Controller
             'id'=> 'required|string|max:255',
             'spec_id' => 'required|exists:specs,id',
             'name' => 'required|string|max:255',
-            'value' => 'required|string|max:255',
             'attribute_type' => 'required|in:number,text,boolean',
         ]);
         return SpecAttribute::create($validated);
@@ -30,7 +29,6 @@ class SpecAttributeController extends Controller
             'id' => 'required|string|max:255',
             'spec_id' => 'required|exists:specs,id',
             'name' => 'required|string|max:255',
-            'value' => 'required|string|max:255',
             'attribute_type' => 'required|in:number,text,boolean',
         ]);
         $specAttribute->update($validated);
@@ -41,6 +39,6 @@ class SpecAttributeController extends Controller
     {
         $specAttribute = SpecAttribute::findOrFail($id);
         $specAttribute->delete();
-        return response()->noContent();
+        return response()->json(['message'=>'đã xoá']);
     }
 }

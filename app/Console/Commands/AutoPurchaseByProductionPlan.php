@@ -42,54 +42,123 @@ class AutoPurchaseByProductionPlan extends Command
                 ->whereNotNull('order_date')
                 ->orderBy('order_date', 'asc')
                 ->get();
+
             if ($plannedOrders->isEmpty()) {
                 $this->info("Không có KHSX nào đủ điều kiện để đề xuất mua hàng.");
+                
+                $this->info("🔍 Không có kế hoạch sản xuất → kiểm tra min_stock");
+        
+                $this->handleStock();
+                DB::commit();
                 return;
             }
 
-            foreach ($plannedOrders as $order) {
-                $productId = $order->product_id;
-                $orderQuantity = $order->order_quantity;
-                $startDate = Carbon::parse($order->order_date);
-                $productInventory = Inventory::where('item_id', $productId)
-                    ->where('item_type', 'product')->first();
-                $specs = Spec::where('product_id', $productId)->get();
-                $productCycleTime = 0;
-                foreach($specs as $spec){
-                    $productCycleTime += $spec->cycle_time;
-                }         
-                $productPerDay = 8*60/$productCycleTime;
-                $bomItems = BomItem::where('bom_id', $order->bom_id)->get();
-                foreach ($bomItems as $bomItem) {
-                    $materialId = $bomItem->input_material_id;
-                    $inputType = $bomItem->input_material_type; 
-                    $remainingOrderQuantity = max(0, $orderQuantity - ($productInventory->quantity ?? 0));
-                    $requiredQuantity = $bomItem->quantity_input * $remainingOrderQuantity;
-                    $inventory = Inventory::where('item_id', $materialId)
-                        ->where('item_type', $inputType)
-                        ->first();
-                    $currentStock = $inventory ? $inventory->quantity : 1;
-                    $DayOfStockOut = $currentStock/($bomItem->quantity_input*$productPerDay);
-                    if ($inputType === 'materials') {
-                        $this->info("Dang o day");
-                        $this->handleMaterialPurchase($materialId, $requiredQuantity, $currentStock, $startDate, $DayOfStockOut);
-                    }
-                    else if ($inputType === 'semi_finished_products') {
-                        $this->handleSemiFinishedProduct($materialId, $requiredQuantity, $currentStock, $startDate, $DayOfStockOut);
+            // Nhóm các kế hoạch theo order_id
+            $ordersGroupedByOrderId = $plannedOrders->groupBy('order_id');
+
+            foreach ($ordersGroupedByOrderId as $orderId => $orders) {
+                $this->info("👉 Đang xử lý đề xuất mua hàng cho đơn hàng Order ID: $orderId");
+
+                foreach ($orders as $order) {
+                    $productId = $order->product_id;
+                    $orderQuantity = $order->order_quantity;
+                    $startDate = Carbon::parse($order->order_date);
+
+                    $productInventory = Inventory::where('item_id', $productId)
+                        ->where('item_type', 'product')->first();
+
+                    $specs = Spec::where('product_id', $productId)->get();
+                    $productCycleTime = $specs->sum('cycle_time');
+                    $productPerDay = $productCycleTime > 0 ? (8 * 60 / $productCycleTime) : 0;
+
+                    $bomItems = BomItem::where('bom_id', $order->bom_id)->get();
+
+                    foreach ($bomItems as $bomItem) {
+                        $materialId = $bomItem->input_material_id;
+                        $inputType = $bomItem->input_material_type;
+                        $remainingOrderQuantity = max(0, $orderQuantity - ($productInventory->quantity ?? 0));
+                        $requiredQuantity = $bomItem->quantity_input * $remainingOrderQuantity;
+
+                        $inventory = Inventory::where('item_id', $materialId)
+                            ->where('item_type', $inputType)
+                            ->first();
+                        $currentStock = $inventory ? $inventory->quantity : 0;
+                        $DayOfStockOut = $productPerDay > 0 ? ($currentStock / ($bomItem->quantity_input * $productPerDay)) : 0.1;
+
+                        if ($inputType === 'materials') {
+                            $this->handleMaterialPurchase($materialId, $requiredQuantity, $currentStock, $startDate, $DayOfStockOut);
+                        } elseif ($inputType === 'semi_finished_products') {
+                            $this->handleSemiFinishedProduct($materialId, $requiredQuantity, $currentStock, $startDate, $DayOfStockOut);
+                        }
                     }
                 }
             }
 
             DB::commit();
-            $this->info('Đã hoàn thành đề xuất mua hàng và kiểm tra bán thành phẩm.');
+            $this->info('✅ Đã hoàn thành đề xuất mua hàng và kiểm tra bán thành phẩm.');
 
         } catch (\Exception $e) {
-            DB::rollback();
-            $this->error('Lỗi khi chạy lệnh: ' . $e->getMessage());
+           DB::rollback();
+            $this->error('❌ Lỗi khi chạy lệnh: ' . $e->getMessage());
         }
     }
-
-
+    
+    private function handleStock()
+    {
+        $allInventory = Inventory::whereIn('item_type', ['material', 'semi_finished_product'])->get();
+    
+        foreach ($allInventory as $item) {
+            $itemId = $item->item_id;
+            $itemType = $item->item_type;
+            $minStock = $item->min_stock ?? 100;
+            $currentStock = $item->quantity ?? 0;
+            $shortage = max(0, $minStock - $currentStock);
+    
+            if ($shortage <= 0) {
+                $this->info("✅ $itemId đã đủ min_stock ($currentStock / $minStock)");
+                continue;
+            }
+    
+            // Nếu là bán thành phẩm, kiểm tra có sản xuất được không
+            if ($itemType === 'semi_finished_product') {
+                $previousProcess = BomItem::where('output_id', $itemId)->first();
+                if ($previousProcess) {
+                    $this->info("🔁 $itemId có thể sản xuất trong công đoạn {$previousProcess->process_id}, không cần mua.");
+                    continue;
+                }
+            }
+    
+            // Tìm nhà cung cấp phù hợp
+            $bestSupplier = SupplierPrice::where('material_id', $itemId)
+                ->orderBy('delivery_time', 'asc')
+                ->first();
+    
+            if (!$bestSupplier) {
+                $this->warn("⚠️ Không tìm thấy nhà cung cấp cho $itemId.");
+                continue;
+            }
+    
+            // Tạo đề xuất mua hàng
+            try {
+                PurchaseRequests::create([
+                    'supplier_id' => $bestSupplier->supplier_id,
+                    'material_id' => $itemId,
+                    'type' => $itemType,
+                    'quantity' => $shortage,
+                    'unit_id' => $bestSupplier->unit_id,
+                    'price_per_unit' => $bestSupplier->price_per_unit,
+                    'total_price' => $shortage * $bestSupplier->price_per_unit,
+                    'expected_delivery_date' => Carbon::now()->addDays($bestSupplier->delivery_time ?? 3)->toDateTimeString(),
+                    'status' => 'pending',
+                ]);
+    
+                $this->info("📥 Đề xuất mua $itemId ($itemType) - thiếu $shortage cái - từ nhà cung cấp {$bestSupplier->supplier_id}");
+            } catch (\Exception $e) {
+                $this->error("❌ Lỗi khi tạo đề xuất mua $itemId: " . $e->getMessage());
+            }
+        }
+    }
+    
 
     private function handleMaterialPurchase($materialId, $requiredQuantity, $currentStock, $startDate, $DayOfStockOut)
     {

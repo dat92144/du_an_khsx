@@ -2,7 +2,7 @@
     <div class="mt-3">
       <button class="btn btn-success mb-2" @click="openAddModal">➕ Thêm</button>
 
-      <table class="table table-bordered table-sm">
+      <table class="table table-striped">
         <thead>
           <tr>
             <th>ID</th>

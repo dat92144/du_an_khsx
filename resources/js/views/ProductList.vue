@@ -40,7 +40,7 @@
                 <SpecList :productId="currentProduct.id" />
 
                 <hr />
-                <h5>🧩 Thuộc tính kỹ thuật</h5>
+                <h5>🔢 Danh sách Giá trị Thuộc tính</h5>
                 <SpecAttributes :productId="currentProduct.id" />
                 </div>
             </td>

@@ -12,10 +12,12 @@ export default {
   },
   actions: {
     async fetchSpecAttributes({ commit }) {
+      console.log('🚀 Gọi fetchSpecAttributes...');
         const res = await axios.get('/api/spec-attributes', {
             headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
         });
       //const res = await axios.get('/api/spec-attributes');
+      console.log('📦 Kết quả API:', res.data);
       commit('setSpecAttributes', res.data);
     },
     async createSpecAttribute({ dispatch }, data) {

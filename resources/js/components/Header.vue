@@ -25,10 +25,12 @@
                                     {{ getStatusText(request.status) }}
                                 </span>
                             </div>
-                            <button v-if="request.status !== 'pending'"
-                                    @click.stop="deleteNotification(request.id)"
-                                    class="text-red-500 hover:text-red-700">
-                                ❌
+                            <button
+                            v-if="request.status !== 'pending'"
+                            @click.stop="handleDelete(request.id)"
+                            class="text-red-500 hover:text-red-700"
+                            >
+                            ❌
                             </button>
                         </li>
                     </ul>
@@ -134,6 +136,7 @@ export default {
         async handleApprove() {
             if (!this.selectedRequest) return;
             this.showConfirmEmailModal = true;
+            await this.fetchNotifications();
         },
 
         async confirmApproval(sendEmail) {
@@ -157,12 +160,17 @@ export default {
             }
         },
 
-
+        async handleDelete(id) {
+            console.log("👉 Xoá đề xuất ID:", id);
+            await this.deleteNotification(id);
+            await this.fetchNotifications();
+        },
         async handleReject() {
             if (!this.selectedRequest) return;
             await this.rejectRequest(this.selectedRequest.id);
             this.selectedRequest.status = "rejected"; 
             this.showRequestModal = false;
+            await this.fetchNotifications();
         },
         getStatusClass(status) {
             return status === "approved" ? "text-green-500 font-semibold" : 

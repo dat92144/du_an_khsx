@@ -10,6 +10,8 @@ import boms from './boms';
 import specs from './specs';
 import specAttributeValues from './specAttributeValues';
 import specAttributes from './specAttributes';
+import orders from './orders';
+import units from './units';
 const store = createStore({
     modules: {
         auth,
@@ -23,6 +25,8 @@ const store = createStore({
         specs,
         specAttributeValues,
         specAttributes,
+        orders,
+        units,
     }
 });
 

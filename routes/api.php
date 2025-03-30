@@ -17,7 +17,9 @@ use App\Http\Controllers\BomItemController;
 use App\Http\Controllers\SpecController;
 use App\Http\Controllers\SpecAttributeController;
 use App\Http\Controllers\SpecAttributeValueController;
-
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\PurchaseSuggestionController;
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
@@ -27,6 +29,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::middleware('permission:Admin')->post('/auto-purchase', [PurchaseSuggestionController::class, 'run']);
     Route::middleware('permission:Admin')->get('/notifications', [PurchaseRequestController::class, 'getNotifications']);
     Route::middleware('permission:Admin')->get('/purchase-requests/{id}', [PurchaseRequestController::class, 'show']);
     Route::middleware('permission:Admin')->post('/purchase-requests/{id}/approve', [PurchaseRequestController::class, 'approve']);
@@ -55,6 +58,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:Admin')->delete('/specs/{id}', [SpecController::class, 'destroy']);
     Route::middleware('permission:Admin')->apiResource('spec-attributes', SpecAttributeController::class);
     Route::middleware('permission:Admin')->apiResource('spec-attribute-values', SpecAttributeValueController::class);
+    Route::middleware('permission:Admin')->get('/orders', [OrderController::class, 'index']);
+    Route::middleware('permission:Admin')->post('/orders', [OrderController::class, 'store']);
+    Route::middleware('permission:Admin')->put('/orders/{id}', [OrderController::class, 'update']);
+    Route::middleware('permission:Admin')->delete('/orders/{id}', [OrderController::class, 'destroy']);
+    Route::middleware('permission:Admin')->post('/orders/{id}//start-production', [OrderController::class, 'produce']);
+    Route::middleware('permission:Admin')->get('/units', [UnitController::class, 'index']);
+
 
 
 

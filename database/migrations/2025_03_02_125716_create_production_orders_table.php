@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('production_orders', function (Blueprint $table) {
             $table->string('id')->primary(); // Sử dụng UUID thay vì auto-increment ID
             $table->string('product_id');
+            $table->string('order_id')->nullable();
             $table->integer('order_quantity')->notNull();
             $table->date('order_date')->notNull();
             $table->date('delivery_date')->notNull();

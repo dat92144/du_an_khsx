@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionOrder extends Model {
+class ProductionHistory extends Model
+{
     use HasFactory;
 
     protected $primaryKey = 'id';
@@ -14,24 +15,19 @@ class ProductionOrder extends Model {
 
     protected $fillable = [
         'id',
-        'order_id',
+        'production_order_id',
         'product_id',
-        'order_quantity',
-        'order_date',
-        'delivery_date',
-        'bom_id',
-        'producing_status',
-        'created_at',
-    ];    
+        'completed_quantity',
+        'date',
+    ];
+
+    public function productionOrder()
+    {
+        return $this->belongsTo(ProductionOrder::class, 'production_order_id');
+    }
 
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
-    }    
-    public function machineSchedules() {
-        return $this->hasMany(MachineSchedule::class);
     }
-    public function order() {
-        return $this->belongsTo(Order::class, 'order_id');
-    }    
 }

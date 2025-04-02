@@ -40,6 +40,11 @@
                         📦 Sản phẩm
                     </router-link>
                 </li>
+                <li>
+                    <router-link to="/production-orders" class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center">
+                    📋 Kế hoạch SX
+                    </router-link>
+                </li>
             </ul>
         </nav>
     </aside>

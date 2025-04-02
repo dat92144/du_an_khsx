@@ -35,6 +35,11 @@ class DatabaseSeeder extends Seeder
             InventoryTableSeeder::class,
             SuppliersTableSeeder::class,
             SupplierPricesTableSeeder::class,
+            InventoryMaterialSeeder::class,
+            InventorySemiProductSeeder::class,
+            InventoryProductSeeder::class,
+            MachineCapacitySeeder::class, 
+            RoutingBomSeeder::class,
         ]);
     }
 }

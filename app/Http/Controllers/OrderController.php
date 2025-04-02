@@ -2,90 +2,89 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bom;
-use Illuminate\Http\Request;
 use App\Models\Order;
-use App\Models\OrderDetail;
-use App\Models\ProductionOrder;
-class OrderController extends Controller
-{
-    public function index()
-    {
-        return Order::with('details')->get();
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use App\Models\OrderDetails;
+
+class OrderController extends Controller {
+    public function index() {
+        $orders = Order::with('customer')->get();
+    
+        $orders = $orders->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'customer_name' => $order->customer ? $order->customer->name : 'Không có khách hàng',
+                'order_date' => $order->order_date,
+                'delivery_date' => $order->delivery_date,
+                'status' => $order->status
+            ];
+        });
+    
+        return response()->json($orders, 200);
+    }    
+
+    public function show($id) {
+        $order = Order::find($id);
+        if (!$order) return response()->json(['message' => 'Order not found'], 404);
+        return response()->json($order, 200);
     }
 
-    public function store(Request $request)
-    {
-        $order = Order::create([
-            'id' => $request->id,
-            'customer_id' => $request->customer_id,
-            'order_date' => $request->order_date,
-            'delivery_date' => $request->delivery_date,
-            'status' => 'pending'
+    public function store(Request $request) {
+        $validated = $request->validate([
+            'customer_id' => 'required|string|exists:customers,id',
+            'order_date' => 'required|date',
+            'delivery_date' => 'required|date',
+            'status' => 'required|string'
+        ]);
+    
+        $latest = DB::table('orders')->orderBy('id', 'desc')->first();
+        $newId = $latest ? 'o' . str_pad(intval(substr($latest->id, 3)) + 1, 3, '0', STR_PAD_LEFT) : 'o001';
+    
+        $validated['id'] = $newId;
+        $order = Order::create($validated);
+    
+        return response()->json($order, 201);
+    }    
+
+    public function update(Request $request, $id) {
+        $order = Order::find($id);
+        if (!$order) return response()->json(['message' => 'Order not found'], 404);
+
+        $validated = $request->validate([
+            'customer_id' => 'string|exists:customers,id',
+            'order_date' => 'date',
+            'delivery_date' => 'date',
+            'status' => 'string|max:50'
         ]);
 
-        foreach ($request->details as $item) {
-            OrderDetail::create([
-                'id' => $item['id'],
-                'order_id' => $order->id,
-                'product_id' => $item['product_id'],
-                'product_type' => 'product',
-                'quantity_product' => $item['quantity_product'],
-                'unit_id' => $item['unit_id']
-            ]);
-        }
-
-        return response()->json(['message' => 'Đã tạo đơn hàng thành công']);
+        $order->update($validated);
+        return response()->json($order, 200);
     }
 
-    public function update(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $order->update($request->only(['customer_id', 'order_date', 'delivery_date']));
+    public function destroy($id) {
+        $order = Order::find($id);
+        if (!$order) return response()->json(['message' => 'Order not found'], 404);
 
-        OrderDetail::where('order_id', $id)->delete();
-
-        foreach ($request->details as $item) {
-            OrderDetail::create([
-                'id' => $item['id'],
-                'order_id' => $id,
-                'product_id' => $item['product_id'],
-                'product_type' => $item['product_type'],
-                'quantity_product' => $item['quantity_product'],
-                'unit_id' => $item['unit_id'],
-            ]);
-        }
+        $order->delete();
+        return response()->json(['message' => 'Order deleted successfully'], 200);
     }
 
-    public function destroy($id)
-    {
-        Order::where('id', $id)->delete();
-        OrderDetail::where('order_id', $id)->delete();
-
-        return response()->json(['message' => 'Đã xoá đơn hàng']);
-    }
-
-    public function produce($id)
-    {
-        $order = Order::with('details')->findOrFail($id);
-        foreach ($order->details as $detail) {
-            $bom = Bom::where('product_id', $detail->product_id)->first();
-            if(!$bom){
-                return response()->json(['message'=>'không tìm thấy bom phù hợp']);
-            }
-            ProductionOrder::create([
-                'order_id' => $order->id,
-                'product_id' => $detail->product_id,
-                'order_quantity' => $detail->quantity_product,
-                'order_date' => $order->order_date,
-                'delivery_date' =>$order->delivery_date,
-                'bom_id' =>$bom->id,
-                'producing_status' => 'pending',
-            ]);
-        }
-
-        $order->update(['status' => 'approved']);
-
-        return response()->json(['message' => 'Đã thêm vào kế hoạch sản xuất']);
-    }
+    public function getOrderItems($orderId) {
+        $orderDetails = OrderDetails::where('order_id', $orderId)
+            ->with(['product:id,name', 'unit:id,name']) // Chỉ lấy các trường cần thiết
+            ->get();
+    
+        $result = $orderDetails->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'product_name' => optional($item->product)->name ?? 'Không có sản phẩm',
+                'quantity' => $item->quantity_product ?? 0,
+                'unit_name' => optional($item->unit)->name ?? 'Không có đơn vị'
+            ];
+        });
+    
+        return response()->json($result, 200);
+    }    
 }

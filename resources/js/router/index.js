@@ -9,6 +9,8 @@ import Machines from '../views/Machines.vue';
 import Processes from '../views/Processes.vue';
 import RawMaterials from '../views/RawMaterials.vue';
 import ProductList from '../views/ProductList.vue';
+import ProductionOrders from '../views/ProductionOrders.vue';
+
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', component: Login },
@@ -24,6 +26,8 @@ const routes = [
             { path: '/processes', component: Processes, meta: { requiresAuth: true } },
             { path: '/raw-materials', component: RawMaterials, meta: { requiresAuth: true } },
             { path: '/products', component: ProductList, meta: { requiresAuth: true } },
+            { path: '/production-orders', component: ProductionOrders, meta: { requiresAuth: true } },
+
         ]
     }
 ];

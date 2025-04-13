@@ -14,40 +14,55 @@ class ProcessesTableSeeder extends Seeder
     {
         DB::table('processes')->insert([
             [
-                'id' => 'pr001',
-                'name' => 'Cắt CNC',
-                'description' => 'Cắt khung xe từ vật liệu nhôm hoặc carbon bằng máy CNC.',
+                'id' => 'P001',
+                'name' => 'Nghiền và phối trộn nguyên liệu',
+                'description' => 'Chuẩn bị nguyên liệu cho sản xuất clinker',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'pr002',
-                'name' => 'Hàn khung',
-                'description' => 'Hàn tạo khung xe cơ bản.',
+                'id' => 'P002',
+                'name' => 'Nung clinker',
+                'description' => 'Nung hỗn hợp nguyên liệu ở nhiệt độ cao để tạo clinker',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'pr003',
-                'name' => 'Sơn Phủ',
-                'description' => 'Sơn chống nước và bảo vệ bề mặt khung xe.',
+                'id' => 'P003',
+                'name' => 'Làm mát clinker',
+                'description' => 'Làm mát clinker sau khi nung',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'pr004',
-                'name' => 'Lắp Ráp',
-                'description' => 'Lắp khung, bánh xe, tay lái và các bộ phận khác để hoàn thành xe đạp.',
+                'id' => 'P004',
+                'name' => 'Nghiền clinker tạo xi măng rời',
+                'description' => 'Nghiền clinker + phụ gia tạo xi măng PCB40 dạng rời',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'pr005',
-                'name' => 'Lắp khớp nối',
-                'description' => 'Tạo các khớp để gấp xe.',
+                'id' => 'P005',
+                'name' => 'Phân loại và kiểm tra chất lượng xi măng',
+                'description' => 'Lọc xi măng đạt tiêu chuẩn',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'P006',
+                'name' => 'Đóng bao xi măng',
+                'description' => 'Đóng bao xi măng PCB40 để tiêu thụ',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'P007',
+                'name' => 'Xuất kho xi măng',
+                'description' => 'Vận chuyển xi măng bao ra thị trường',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ]);
+
     }
 }

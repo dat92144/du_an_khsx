@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('item_type', 255);
             $table->integer('quantity')->default(0);
             $table->string('unit_id');
+            $table->integer('min_stock')->default(0);
             $table->timestamp('last_updated')->default(now());
             $table->timestamps();
 

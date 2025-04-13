@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('production_orders', function (Blueprint $table) {
             $table->string('id')->primary(); // Sử dụng UUID thay vì auto-increment ID
-            $table->string('product_id');
+            $table->string('product_id')->nullable();
+            $table->string('semi_finished_product_id')->nullable();
             $table->string('order_id')->nullable();
             $table->integer('order_quantity')->notNull();
             $table->date('order_date')->notNull();
@@ -23,6 +24,7 @@ return new class extends Migration
             $table->timestamps(); // Thêm created_at & updated_at
 
             // Khóa ngoại
+            $table->foreign('semi_finished_product_id')->references('id')->on('semi_finished_products')->delete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('bom_id')->references('id')->on('boms')->onDelete('cascade');
         });

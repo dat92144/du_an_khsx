@@ -13,10 +13,31 @@ class BomsTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('boms')->insert([
-            ['id' => 'BOM001', 'name' => 'BOM Xe Đạp Địa Hình', 'description' => 'Cấu trúc BOM cho xe đạp địa hình.', 'product_id' => 'pro001', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'BOM002', 'name' => 'BOM Xe Đạp Đua', 'description' => 'Cấu trúc BOM cho xe đạp tốc độ cao.', 'product_id' => 'pro002', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'BOM003', 'name' => 'BOM Xe Đạp Điện', 'description' => 'Cấu trúc BOM cho xe đạp điện trợ lực.', 'product_id' => 'pro003', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'BOM004', 'name' => 'BOM Xe Đạp Gấp', 'description' => 'Cấu trúc BOM cho xe đạp gấp.', 'product_id' => 'pro004', 'created_at' => now(), 'updated_at' => now()],
+            [
+                'id' => 'BOM001',
+                'name' => 'BOM Clinker CPC50',
+                'description' => 'Tạo clinker từ nguyên liệu đá vôi, đất sét, quặng sắt',
+                'semi_finished_product_id' => 'SFP002',
+                'product_id' => null,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            [
+                'id' => 'BOM002',
+                'name' => 'BOM Xi măng rời PCB40',
+                'description' => 'Tạo xi măng rời từ clinker và phụ gia',
+                'semi_finished_product_id' => 'SFP001',
+                'product_id' => null,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            [
+                'id' => 'BOM003',
+                'name' => 'BOM Xi măng bao PCB40',
+                'description' => 'Đóng bao xi măng rời thành xi măng PCB40',
+                'semi_finished_product_id' => null,
+                'product_id' => 'PRO001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
         ]);
+
     }
 }

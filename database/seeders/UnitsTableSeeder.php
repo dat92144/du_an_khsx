@@ -13,10 +13,27 @@ class UnitsTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('units')->insert([
-            ['id' => 'u001', 'name' => 'Kg', 'description' => 'Kilogram - Đơn vị đo trọng lượng.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'u002', 'name' => 'Cái', 'description' => 'Chiếc - Đơn vị đếm sản phẩm hoàn chỉnh.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'u003', 'name' => 'Lít', 'description' => 'Đơn vị đo thể tích (sơn, dầu, chất lỏng).', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'u004', 'name' => 'Bộ', 'description' => 'Bộ phận hoàn chỉnh như bánh xe, truyền động.', 'created_at' => now(), 'updated_at' => now()],
+            [
+                'id' => 'U001',
+                'name' => 'Tấn',
+                'description' => 'Đơn vị tính chính cho nguyên liệu và sản phẩm',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'U002',
+                'name' => 'Kilogram',
+                'description' => 'Đơn vị tính phổ biến cho đóng bao (50kg, v.v.)',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'U003',
+                'name' => 'Bao',
+                'description' => 'Đơn vị đóng gói sản phẩm PCB40',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

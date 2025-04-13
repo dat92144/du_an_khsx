@@ -15,7 +15,8 @@ return new class extends Migration
             $table->string('id')->primary();
             $table->string('bom_id');
             $table->string('process_id');
-            $table->string('product_id');
+            $table->string('product_id')->nullable();
+            $table->string('semi_finished_product_id')->nullable();
             $table->string('input_material_id');
             $table->string('input_material_type', 255);
             $table->integer('quantity_input');
@@ -26,6 +27,7 @@ return new class extends Migration
             $table->string('output_unit_id');
             $table->timestamps();
 
+            $table->foreign('semi_finished_product_id')->references('id')->on('semi_finished_products')->delete('cascade');
             $table->foreign('bom_id')->references('id')->on('boms')->onDelete('cascade');
             $table->foreign('process_id')->references('id')->on('processes')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');

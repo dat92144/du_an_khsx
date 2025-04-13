@@ -14,34 +14,8 @@ class OrderDetailsTableSeeder extends Seeder
     {
         DB::table('order_details')->insert([
             [
-                'id' => 'od001', 'order_id' => 'o001', 'product_id' => 'pro001',
+                'id' => 'od001', 'order_id' => 'o001', 'product_id' => 'PRO001',
                 'product_type' => 'product', 'quantity_product' => 10, 'unit_id' => 'u002',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'od002', 'order_id' => 'o001', 'product_id' => 'pro002',
-                'product_type' => 'product', 'quantity_product' => 5, 'unit_id' => 'u002',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'od003', 'order_id' => 'o001', 'product_id' => 'pro003',
-                'product_type' => 'product', 'quantity_product' => 10, 'unit_id' => 'u002',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'od004', 'order_id' => 'o001', 'product_id' => 'pro004',
-                'product_type' => 'product', 'quantity_product' => 5, 'unit_id' => 'u002',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-
-            [
-                'id' => 'od005', 'order_id' => 'o002', 'product_id' => 'pro003',
-                'product_type' => 'product', 'quantity_product' => 10, 'unit_id' => 'u002',
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'od006', 'order_id' => 'o002', 'product_id' => 'pro004',
-                'product_type' => 'product', 'quantity_product' => 5, 'unit_id' => 'u002',
                 'created_at' => now(), 'updated_at' => now(),
             ],
         ]);

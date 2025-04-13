@@ -13,221 +13,318 @@ class BomItemsTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('bom_items')->insert([
-            //san pham 1
+
+            // ===== BOM001: Quy trình chi tiết sản xuất Clinker CPC50 =====
+
+            // B1. Nhập nguyên liệu
             [
-                'id' => 'bi001', 'bom_id' => 'bom001', 'process_id' => 'pr001',
-                'product_id' => 'pro001', 'input_material_id' => 'mat001', 'input_material_type' => 'materials',
-                'quantity_input' => 2, 'input_unit_id' => 'u001', 'output_id' => 'sem008', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1.8, 'output_unit_id' => 'u001', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi002', 'bom_id' => 'bom001', 'process_id' => 'pr002',
-                'product_id' => 'pro001', 'input_material_id' => 'sem008', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1.8, 'input_unit_id' => 'u001', 'output_id' => 'sem001', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi003', 'bom_id' => 'bom001', 'process_id' => 'pr003',
-                'product_id' => 'pro001', 'input_material_id' => 'mat003', 'input_material_type' => 'materials',
-                'quantity_input' => 0.5, 'input_unit_id' => 'u003', 'output_id' => 'sem004', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI001', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'MAT001', 'input_material_type' => 'materials',
+                'quantity_input' => 80, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi004', 'bom_id' => 'bom001', 'process_id' => 'pr003',
-                'product_id' => 'pro001', 'input_material_id' => 'sem001', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'sem004', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI002', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'MAT002', 'input_material_type' => 'materials',
+                'quantity_input' => 15, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi035', 'bom_id' => 'bom001', 'process_id' => 'pr004',
-                'product_id' => 'pro001', 'input_material_id' => 'sem004', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro001', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI003', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'MAT003', 'input_material_type' => 'materials',
+                'quantity_input' => 5, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B2. Nghiền & phối trộn (giữ tỷ lệ 80:15:5 như trên)
+
+            // B3. Đồng nhất hóa
+            [
+                'id' => 'BI004', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B4. Sấy khô
+            [
+                'id' => 'BI005', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 97, 'output_unit_id' => 'U001', // hao hụt ~3%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B5. Nung clinker
+            [
+                'id' => 'BI006', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 97, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 63, 'output_unit_id' => 'U001', // hao hụt 35%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B6. Làm mát clinker
+            [
+                'id' => 'BI007', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 63, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 62.37, 'output_unit_id' => 'U001', // hao hụt 1%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B7. Lưu kho clinker (không thay đổi lượng)
+            [
+                'id' => 'BI008', 'bom_id' => 'BOM001', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP002',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 62.37, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 62.37, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // ===== BOM002: Xi măng rời PCB40 =====
+            // ===== BOM001: Quy trình chi tiết sản xuất Clinker CPC50 =====
+
+            // B1. Nhập nguyên liệu
+            [
+                'id' => 'BI009', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'MAT001', 'input_material_type' => 'materials',
+                'quantity_input' => 80, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi005', 'bom_id' => 'bom001', 'process_id' => 'pr004',
-                'product_id' => 'pro001', 'input_material_id' => 'sem003', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro001', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI010', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'MAT002', 'input_material_type' => 'materials',
+                'quantity_input' => 15, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi006', 'bom_id' => 'bom001', 'process_id' => 'pr004',
-                'product_id' => 'pro001', 'input_material_id' => 'sem006', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro001', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI011', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'MAT003', 'input_material_type' => 'materials',
+                'quantity_input' => 5, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B2. Nghiền & phối trộn (giữ tỷ lệ 80:15:5 như trên)
+
+            // B3. Đồng nhất hóa
+            [
+                'id' => 'BI012', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B4. Sấy khô
+            [
+                'id' => 'BI013', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 97, 'output_unit_id' => 'U001', // hao hụt ~3%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B5. Nung clinker
+            [
+                'id' => 'BI014', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 97, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 63, 'output_unit_id' => 'U001', // hao hụt 35%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B6. Làm mát clinker
+            [
+                'id' => 'BI015', 'bom_id' => 'BOM002', 'process_id' => 'P001',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 63, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 62.37, 'output_unit_id' => 'U001', // hao hụt 1%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            //B7. sản xuất xi măng rời
+            [
+                'id' => 'BI016', 'bom_id' => 'BOM002', 'process_id' => 'P004',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 95, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP001', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi007', 'bom_id' => 'bom001', 'process_id' => 'pr004',
-                'product_id' => 'pro001', 'input_material_id' => 'sem007', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro001', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            //san pham 4
-            [
-                'id' => 'bi008', 'bom_id' => 'bom004', 'process_id' => 'pr001',
-                'product_id' => 'pro004', 'input_material_id' => 'mat002', 'input_material_type' => 'materials',
-                'quantity_input' => 1.5, 'input_unit_id' => 'u001', 'output_id' => 'sem009', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1.2, 'output_unit_id' => 'u001', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI017', 'bom_id' => 'BOM002', 'process_id' => 'P004',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'MAT004', 'input_material_type' => 'materials',
+                'quantity_input' => 3, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP001', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi009', 'bom_id' => 'bom004', 'process_id' => 'pr002',
-                'product_id' => 'pro004', 'input_material_id' => 'sem009', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1.2, 'input_unit_id' => 'u001', 'output_id' => 'sem002', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI018', 'bom_id' => 'BOM002', 'process_id' => 'P004',
+                'product_id' => null, 'semi_finished_product_id' => 'SFP001',
+                'input_material_id' => 'MAT005', 'input_material_type' => 'materials',
+                'quantity_input' => 2, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP001', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // ===== BOM003: Đóng bao PCB40 =====
+
+            // ===== BOM001: Quy trình chi tiết sản xuất Clinker CPC50 =====
+
+            // B1. Nhập nguyên liệu
+            [
+                'id' => 'BI019', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'MAT001', 'input_material_type' => 'materials',
+                'quantity_input' => 80, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi010', 'bom_id' => 'bom004', 'process_id' => 'pr005',
-                'product_id' => 'pro004', 'input_material_id' => 'sem002', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'sem010', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI020', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'MAT002', 'input_material_type' => 'materials',
+                'quantity_input' => 15, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi011', 'bom_id' => 'bom004', 'process_id' => 'pr005',
-                'product_id' => 'pro004', 'input_material_id' => 'mat004', 'input_material_type' => 'materials',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'sem010', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI021', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'MAT003', 'input_material_type' => 'materials',
+                'quantity_input' => 5, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B2. Nghiền & phối trộn (giữ tỷ lệ 80:15:5 như trên)
+
+            // B3. Đồng nhất hóa
+            [
+                'id' => 'BI022', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B4. Sấy khô
+            [
+                'id' => 'BI023', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 97, 'output_unit_id' => 'U001', // hao hụt ~3%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B5. Nung clinker
+            [
+                'id' => 'BI024', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 97, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 63, 'output_unit_id' => 'U001', // hao hụt 35%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
+            // B6. Làm mát clinker
+            [
+                'id' => 'BI025', 'bom_id' => 'BOM003', 'process_id' => 'P001',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 63, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP002', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 62.37, 'output_unit_id' => 'U001', // hao hụt 1%
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            //B7. sản xuất xi măng rời
+            [
+                'id' => 'BI026', 'bom_id' => 'BOM003', 'process_id' => 'P004',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'SFP002', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 95, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP001', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi012', 'bom_id' => 'bom004', 'process_id' => 'pr003',
-                'product_id' => 'pro004', 'input_material_id' => 'mat003', 'input_material_type' => 'materials',
-                'quantity_input' => 0.5, 'input_unit_id' => 'u003', 'output_id' => 'sem011', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI027', 'bom_id' => 'BOM003', 'process_id' => 'P004',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'MAT004', 'input_material_type' => 'materials',
+                'quantity_input' => 3, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP001', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'bi013', 'bom_id' => 'bom004', 'process_id' => 'pr003',
-                'product_id' => 'pro004', 'input_material_id' => 'sem010', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'sem011', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI028', 'bom_id' => 'BOM003', 'process_id' => 'P004',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'MAT005', 'input_material_type' => 'materials',
+                'quantity_input' => 2, 'input_unit_id' => 'U001',
+                'output_id' => 'SFP001', 'output_type' => 'semi_finished_products',
+                'quantity_output' => 100, 'output_unit_id' => 'U001',
+                'created_at' => now(), 'updated_at' => now(),
             ],
+
             [
-                'id' => 'bi014', 'bom_id' => 'bom004', 'process_id' => 'pr004',
-                'product_id' => 'pro004', 'input_material_id' => 'sem003', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro004', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
+                'id' => 'BI029', 'bom_id' => 'BOM003', 'process_id' => 'P006',
+                'product_id' => 'PRO001', 'semi_finished_product_id' => null,
+                'input_material_id' => 'SFP001', 'input_material_type' => 'semi_finished_products',
+                'quantity_input' => 100, 'input_unit_id' => 'U001',
+                'output_id' => 'PRO001', 'output_type' => 'products',
+                'quantity_output' => 2000, 'output_unit_id' => 'U003',
+                'created_at' => now(), 'updated_at' => now(),
             ],
-            [
-                'id' => 'bi015', 'bom_id' => 'bom004', 'process_id' => 'pr004',
-                'product_id' => 'pro004', 'input_material_id' => 'sem006', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro004', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi016', 'bom_id' => 'bom004', 'process_id' => 'pr004',
-                'product_id' => 'pro004', 'input_material_id' => 'sem007', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro004', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi017', 'bom_id' => 'bom004', 'process_id' => 'pr004',
-                'product_id' => 'pro004', 'input_material_id' => 'sem011', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'pro004', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-             //san pham 2
-             [
-                'id' => 'bi018', 'bom_id' => 'bom002', 'process_id' => 'pr001',
-                'product_id' => 'pro002', 'input_material_id' => 'mat002', 'input_material_type' => 'materials',
-                'quantity_input' => 1.5, 'input_unit_id' => 'u001', 'output_id' => 'sem009', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1.2, 'output_unit_id' => 'u001', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi019', 'bom_id' => 'bom002', 'process_id' => 'pr002',
-                'product_id' => 'pro002', 'input_material_id' => 'sem009', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1.2, 'input_unit_id' => 'u001', 'output_id' => 'sem002', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi020', 'bom_id' => 'bom002', 'process_id' => 'pr003',
-                'product_id' => 'pro002', 'input_material_id' => 'mat003', 'input_material_type' => 'materials',
-                'quantity_input' => 0.5, 'input_unit_id' => 'u003', 'output_id' => 'sem005', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi021', 'bom_id' => 'bom002', 'process_id' => 'pr003',
-                'product_id' => 'pro002', 'input_material_id' => 'sem002', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'sem005', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi022', 'bom_id' => 'bom002', 'process_id' => 'pr004',
-                'product_id' => 'pro002', 'input_material_id' => 'sem003', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro002', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi023', 'bom_id' => 'bom002', 'process_id' => 'pr004',
-                'product_id' => 'pro002', 'input_material_id' => 'sem006', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro002', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi024', 'bom_id' => 'bom002', 'process_id' => 'pr004',
-                'product_id' => 'pro002', 'input_material_id' => 'sem007', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro002', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi025', 'bom_id' => 'bom002', 'process_id' => 'pr004',
-                'product_id' => 'pro002', 'input_material_id' => 'sem005', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'pro002', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            //san pham 3
-            [
-                'id' => 'bi027', 'bom_id' => 'bom003', 'process_id' => 'pr001',
-                'product_id' => 'pro003', 'input_material_id' => 'mat001', 'input_material_type' => 'materials',
-                'quantity_input' => 2, 'input_unit_id' => 'u001', 'output_id' => 'sem008', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1.8, 'output_unit_id' => 'u001', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi028', 'bom_id' => 'bom003', 'process_id' => 'pr002',
-                'product_id' => 'pro003', 'input_material_id' => 'sem008', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1.8, 'input_unit_id' => 'u001', 'output_id' => 'sem001', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi029', 'bom_id' => 'bom003', 'process_id' => 'pr003',
-                'product_id' => 'pro003', 'input_material_id' => 'mat003', 'input_material_type' => 'materials',
-                'quantity_input' => 0.5, 'input_unit_id' => 'u003', 'output_id' => 'sem004', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi030', 'bom_id' => 'bom003', 'process_id' => 'pr003',
-                'product_id' => 'pro003', 'input_material_id' => 'sem001', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u002', 'output_id' => 'sem004', 'output_type' => 'semi_finished_products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi031', 'bom_id' => 'bom003', 'process_id' => 'pr004',
-                'product_id' => 'pro003', 'input_material_id' => 'sem003', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro003', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi032', 'bom_id' => 'bom003', 'process_id' => 'pr004',
-                'product_id' => 'pro003', 'input_material_id' => 'sem006', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro003', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi033', 'bom_id' => 'bom003', 'process_id' => 'pr004',
-                'product_id' => 'pro003', 'input_material_id' => 'sem007', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro003', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi034', 'bom_id' => 'bom003', 'process_id' => 'pr004',
-                'product_id' => 'pro003', 'input_material_id' => 'sem004', 'input_material_type' => 'semi_finished_products',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro003', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            [
-                'id' => 'bi036', 'bom_id' => 'bom003', 'process_id' => 'pr004',
-                'product_id' => 'pro003', 'input_material_id' => 'mat005', 'input_material_type' => 'materials',
-                'quantity_input' => 1, 'input_unit_id' => 'u004', 'output_id' => 'pro003', 'output_type' => 'products',
-                'quantity_output' => 1, 'output_unit_id' => 'u002', 'created_at' => now(), 'updated_at' => now()
-            ],
-            
         ]);
+
     }
 }

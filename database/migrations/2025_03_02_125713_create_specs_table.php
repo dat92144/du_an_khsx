@@ -15,7 +15,8 @@ return new class extends Migration
             $table->string('id')->primary();
             $table->string('name', 255);
             $table->text('description')->nullable();
-            $table->string('product_id');
+            $table->string('product_id')->nullable();
+            $table->string('semi_finished_product_id')->nullable();
             $table->string('process_id')->nullable();
             $table->string('machine_id')->nullable();
             $table->float('lead_time')->nullable();
@@ -23,6 +24,7 @@ return new class extends Migration
             $table->integer('lot_size')->nullable();
             $table->timestamps();
 
+            $table->foreign('semi_finished_product_id')->references('id')->on('semi_finished_products')->delete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('process_id')->references('id')->on('processes')->onDelete('set null');
             $table->foreign('machine_id')->references('id')->on('machines')->onDelete('set null');

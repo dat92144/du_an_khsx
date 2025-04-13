@@ -13,12 +13,77 @@ class MachinesTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('machines')->insert([
-            ['id' => 'mac001', 'name' => 'Máy CNC 01', 'description' => 'Gia công cắt khung nhôm chính xác cao.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'mac002', 'name' => 'Máy Sơn Tĩnh Điện', 'description' => 'Sơn chống nước và bảo vệ bề mặt khung xe.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'mac003', 'name' => 'Máy Hàn Laser', 'description' => 'Hàn khung xe bằng công nghệ laser siêu chính xác.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'mac004', 'name' => 'Dây Chuyền Lắp Ráp', 'description' => 'Tự động lắp ráp các bộ phận xe đạp.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'mac006', 'name' => 'Máy Kiểm Tra Chất Lượng', 'description' => 'Kiểm tra và kiểm định chất lượng sản phẩm.', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 'mac005', 'name' => 'Máy hàn khớp nối', 'description' => 'Gắn các khớp gấp cho xe gấp', 'created_at' => now(), 'updated_at' => now()],
+            [
+                'id' => 'MAC001',
+                'name' => 'Máy cấp liệu Schenck AccuRate',
+                'description' => 'Cấp liệu cho hệ thống sản xuất clinker và xi măng',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC002',
+                'name' => 'Máy nghiền PE-600x900',
+                'description' => 'Nghiền nguyên liệu thô để phối trộn',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC003',
+                'name' => 'Silo đồng nhất hóa Polysius',
+                'description' => 'Đồng nhất hóa nguyên liệu trước khi nung clinker',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC004',
+                'name' => 'Máy sấy FCB',
+                'description' => 'Sấy khô liệu trước khi nung clinker',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC005',
+                'name' => 'Lò quay FL Smidth',
+                'description' => 'Nung clinker ở nhiệt độ ~1450°C',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC006',
+                'name' => 'Máy làm mát KHD Grate Cooler',
+                'description' => 'Làm mát clinker sau khi nung',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC007',
+                'name' => 'Máy nghiền bi FL Smidth UMS',
+                'description' => 'Nghiền clinker với phụ gia để tạo xi măng',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC008',
+                'name' => 'Bộ phân ly O-SEPA',
+                'description' => 'Phân loại xi măng mịn đạt tiêu chuẩn',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC009',
+                'name' => 'Máy đóng bao Haver & Boecker',
+                'description' => 'Đóng bao xi măng PCB40 (50kg)',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'MAC010',
+                'name' => 'Xe tải Hyundai HD320',
+                'description' => 'Vận chuyển sản phẩm xi măng ra khỏi nhà máy',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
+
     }
 }

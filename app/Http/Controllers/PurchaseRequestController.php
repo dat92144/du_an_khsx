@@ -62,7 +62,7 @@ class PurchaseRequestController extends Controller
             'expected_delivery_date' => now()->addDays($purchaseRequest->delivery_time),
             'status' => 'ordered',
         ]);
-        
+
 
         $purchaseRequest->update(['status' => 'approved']);
         if ($request->send_email) {
@@ -87,5 +87,5 @@ class PurchaseRequestController extends Controller
         }
         return response()->json(['message' => 'Không thể xóa đơn hàng chưa xử lý!'], 400);
     }
-    
+
 }

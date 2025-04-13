@@ -14,40 +14,41 @@ class MaterialsTableSeeder extends Seeder
     {
         DB::table('materials')->insert([
             [
-                'id' => 'mat001',
-                'name' => 'Nhôm Hợp Kim 6061',
-                'description' => 'Nguyên liệu chính để sản xuất khung xe đạp.',
+                'id' => 'MAT001',
+                'name' => 'Đá vôi (Limestone)',
+                'description' => 'Nguyên liệu chính để sản xuất clinker',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'mat002',
-                'name' => 'Carbon Fiber',
-                'description' => 'Vật liệu nhẹ, siêu bền cho khung xe đạp đua.',
+                'id' => 'MAT002',
+                'name' => 'Đất sét (Clay)',
+                'description' => 'Thành phần phối trộn với đá vôi để sản xuất clinker',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'mat003',
-                'name' => 'Sơn',
-                'description' => 'Chống xước, chống han dỉ cho bề mặt khung xe',
+                'id' => 'MAT003',
+                'name' => 'Quặng sắt (Iron ore)',
+                'description' => 'Chất điều chỉnh thành phần hóa học',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'mat004',
-                'name' => 'Khớp gấp',
-                'description' => 'Dùng cho xe đạp gấp',
+                'id' => 'MAT004',
+                'name' => 'Tro bay (Fly ash)',
+                'description' => 'Phụ gia cho xi măng PCB40',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'id' => 'mat005',
-                'name' => 'Pin',
-                'description' => 'Dùng cho xe trợ lực điện',
+                'id' => 'MAT005',
+                'name' => 'Thạch cao (Gypsum)',
+                'description' => 'Điều chỉnh thời gian đông kết xi măng',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ]);
+
     }
 }

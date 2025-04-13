@@ -15,9 +15,11 @@ return new class extends Migration
             $table->string('id')->primary();
             $table->string('name', 255);
             $table->text('description')->nullable();
-            $table->string('product_id');
+            $table->string('product_id')->nullable();
+            $table->string('semi_finished_product_id')->nullable();
             $table->timestamps();
 
+            $table->foreign('semi_finished_product_id')->references('id')->on('semi_finished_products')->delete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }

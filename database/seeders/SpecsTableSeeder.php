@@ -13,113 +13,105 @@ class SpecsTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('specs')->insert([
-            //san pham 1
+
+            // ===== CLINKER CPC50 (SFP002) =====
             [
-                'id' => 'SP001', 'name' => 'Cắt CNC Khung Xe', 'description' => 'Gia công cắt khung xe bằng máy CNC.',
-                'product_id' => 'pro001', 'process_id' => 'pr001', 'machine_id' => 'mac001',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
+                'id' => 'SPEC001',
+                'name' => 'Nghiền & phối trộn nguyên liệu clinker',
+                'description' => 'Chuẩn bị đá vôi, đất sét, quặng sắt',
+                'product_id' => null,
+                'semi_finished_product_id' => 'SFP002',
+                'process_id' => 'P001',
+                'machine_id' => 'MAC002', // Máy nghiền PE-600x900
+                'lead_time' => 2.0,
+                'cycle_time' => 0.5,
+                'lot_size' => 100,
                 'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'SP002', 'name' => 'Hàn khung', 'description' => 'Hàn khung xe',
-                'product_id' => 'pro001', 'process_id' => 'pr002', 'machine_id' => 'mac003',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
+                'id' => 'SPEC002',
+                'name' => 'Nung clinker',
+                'description' => 'Nung phối liệu đã nghiền ở 1450°C',
+                'product_id' => null,
+                'semi_finished_product_id' => 'SFP002',
+                'process_id' => 'P002',
+                'machine_id' => 'MAC005', // Lò quay FL Smidth
+                'lead_time' => 3.0,
+                'cycle_time' => 1.0,
+                'lot_size' => 100,
                 'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'SP003', 'name' => 'Sơn', 'description' => 'Sơn chống xước.',
-                'product_id' => 'pro001', 'process_id' => 'pr003', 'machine_id' => 'mac002',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP004', 'name' => 'Lắp ráp', 'description' => 'Hoàn thiện xe',
-                'product_id' => 'pro001', 'process_id' => 'pr004', 'machine_id' => 'mac004',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            // san pham 2
-            [
-                'id' => 'SP005', 'name' => 'Cắt CNC Khung Xe', 'description' => 'Gia công cắt khung xe bằng máy CNC.',
-                'product_id' => 'pro002', 'process_id' => 'pr001', 'machine_id' => 'mac001',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP006', 'name' => 'Hàn khung', 'description' => 'Hàn khung xe',
-                'product_id' => 'pro002', 'process_id' => 'pr002', 'machine_id' => 'mac003',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP007', 'name' => 'Sơn', 'description' => 'Sơn chống xước.',
-                'product_id' => 'pro002', 'process_id' => 'pr003', 'machine_id' => 'mac002',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP008', 'name' => 'Lắp ráp', 'description' => 'Hoàn thiện xe',
-                'product_id' => 'pro002', 'process_id' => 'pr004', 'machine_id' => 'mac004',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            // san pham 3
-            [
-                'id' => 'SP009', 'name' => 'Cắt CNC Khung Xe', 'description' => 'Gia công cắt khung xe bằng máy CNC.',
-                'product_id' => 'pro003', 'process_id' => 'pr001', 'machine_id' => 'mac001',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP010', 'name' => 'Hàn khung', 'description' => 'Hàn khung xe',
-                'product_id' => 'pro003', 'process_id' => 'pr002', 'machine_id' => 'mac003',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP011', 'name' => 'Sơn', 'description' => 'Sơn chống xước.',
-                'product_id' => 'pro003', 'process_id' => 'pr003', 'machine_id' => 'mac002',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP012', 'name' => 'Lắp ráp', 'description' => 'Hoàn thiện xe',
-                'product_id' => 'pro003', 'process_id' => 'pr004', 'machine_id' => 'mac004',
-                'lead_time' => 1.5, 'cycle_time' => 20, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            // san pham 3
-            [
-                'id' => 'SP013', 'name' => 'Cắt CNC Khung Xe', 'description' => 'Gia công cắt khung xe bằng máy CNC.',
-                'product_id' => 'pro004', 'process_id' => 'pr001', 'machine_id' => 'mac001',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP014', 'name' => 'Hàn khung', 'description' => 'Hàn khung xe',
-                'product_id' => 'pro004', 'process_id' => 'pr002', 'machine_id' => 'mac003',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
-                'created_at' => now(), 'updated_at' => now(),
-            ],
-            [
-                'id' => 'SP015', 'name' => 'Tạo khớp gấp', 'description' => 'Tạo khớp gấp xe',
-                'product_id' => 'pro004', 'process_id' => 'pr005', 'machine_id' => 'mac005',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
+                'id' => 'SPEC003',
+                'name' => 'Làm mát clinker',
+                'description' => 'Giảm nhiệt clinker sau nung',
+                'product_id' => null,
+                'semi_finished_product_id' => 'SFP002',
+                'process_id' => 'P003',
+                'machine_id' => 'MAC006', // Máy làm mát KHD Grate Cooler
+                'lead_time' => 0.5,
+                'cycle_time' => 0.2,
+                'lot_size' => 100,
                 'created_at' => now(), 'updated_at' => now(),
             ],
 
+            // ===== XI MĂNG RỜI PCB40 (SFP001) =====
             [
-                'id' => 'SP016', 'name' => 'Sơn', 'description' => 'Sơn chống xước.',
-                'product_id' => 'pro004', 'process_id' => 'pr003', 'machine_id' => 'mac002',
-                'lead_time' => 1.5, 'cycle_time' => 10, 'lot_size' => 100,
+                'id' => 'SPEC004',
+                'name' => 'Nghiền clinker tạo xi măng rời',
+                'description' => 'Nghiền clinker + phụ gia',
+                'product_id' => null,
+                'semi_finished_product_id' => 'SFP001',
+                'process_id' => 'P004',
+                'machine_id' => 'MAC007', // Máy nghiền bi
+                'lead_time' => 2.0,
+                'cycle_time' => 0.7,
+                'lot_size' => 100,
                 'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'SP017', 'name' => 'Lắp ráp', 'description' => 'Hoàn thiện xe',
-                'product_id' => 'pro004', 'process_id' => 'pr004', 'machine_id' => 'mac004',
-                'lead_time' => 1.5, 'cycle_time' => 20, 'lot_size' => 100,
+                'id' => 'SPEC005',
+                'name' => 'Phân loại và kiểm tra xi măng rời',
+                'description' => 'Đảm bảo xi măng đạt chất lượng',
+                'product_id' => null,
+                'semi_finished_product_id' => 'SFP001',
+                'process_id' => 'P005',
+                'machine_id' => 'MAC008', // Bộ phân ly O-SEPA
+                'lead_time' => 1.0,
+                'cycle_time' => 0.5,
+                'lot_size' => 100,
                 'created_at' => now(), 'updated_at' => now(),
             ],
+
+            // ===== XI MĂNG BAO PCB40 (PRO001) =====
+            [
+                'id' => 'SPEC006',
+                'name' => 'Đóng bao xi măng PCB40',
+                'description' => 'Đóng gói xi măng rời thành bao 50kg',
+                'product_id' => 'PRO001',
+                'semi_finished_product_id' => null,
+                'process_id' => 'P006',
+                'machine_id' => 'MAC009', // Máy đóng bao
+                'lead_time' => 1.5,
+                'cycle_time' => 0.4,
+                'lot_size' => 2000,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            [
+                'id' => 'SPEC007',
+                'name' => 'Xuất kho xi măng PCB40',
+                'description' => 'Vận chuyển đến khách hàng',
+                'product_id' => 'PRO001',
+                'semi_finished_product_id' => null,
+                'process_id' => 'P007',
+                'machine_id' => 'MAC010', // Xe tải Hyundai HD320
+                'lead_time' => 0.5,
+                'cycle_time' => 0.2,
+                'lot_size' => 2000,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+
         ]);
+
     }
 }

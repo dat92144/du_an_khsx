@@ -1,8 +1,12 @@
 <template>
     <div class="mt-3">
-      <h5>📋 Danh sách BOM của sản phẩm</h5>
-      <button class="btn btn-success mb-2" @click="openAddModal">➕ Thêm BOM</button>
-  
+      <h5 class="flex items-center gap-2 text-lg font-semibold">
+        <ClipboardList class="w-5 h-5" /> Danh sách BOM của sản phẩm
+      </h5>
+      <button class="btn btn-success mb-2 flex items-center gap-1" @click="openAddModal">
+        <Plus class="w-4 h-4" /> Thêm BOM
+      </button>
+
       <table class="table table-striped">
         <thead>
           <tr>
@@ -13,35 +17,42 @@
           </tr>
         </thead>
         <tbody>
-            <template v-for="bom in boms" :key="bom.id">
-                <!-- Dòng BOM chính -->
-                <tr>
-                <td>{{ bom.id }}</td>
-                <td>{{ bom.name }}</td>
-                <td>{{ bom.description }}</td>
-                <td>
-                    <button class="btn btn-sm btn-info me-2"  @click="toggleBomDetail(bom.id)">👁️</button>
-                    <button class="btn btn-sm btn-info me-2"  @click="editBom(bom)">✏️</button>
-                    <button class="btn btn-sm btn-info me-2"  @click="deleteBomConfirm(bom.id)">🗑️</button>
-                </td>
-                </tr>
+          <template v-for="bom in boms" :key="bom.id">
+            <!-- Dòng BOM chính -->
+            <tr>
+              <td>{{ bom.id }}</td>
+              <td>{{ bom.name }}</td>
+              <td>{{ bom.description }}</td>
+              <td class="flex gap-1">
+                <button class="btn btn-sm btn-info" @click="toggleBomDetail(bom.id)">
+                  <Eye class="w-4 h-4" />
+                </button>
+                <button class="btn btn-sm btn-primary" @click="editBom(bom)">
+                  <Pencil class="w-4 h-4" />
+                </button>
+                <button class="btn btn-sm btn-danger" @click="deleteBomConfirm(bom.id)">
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </td>
+            </tr>
 
-                <!-- Dòng chi tiết BOM (ẩn/hiện) -->
-                <tr v-if="selectedBomId === bom.id">
-                <td colspan="4">
-                    <BomItems :bomId="bom.id" />
-                </td>
-                </tr>
-            </template>
+            <!-- Dòng chi tiết BOM (ẩn/hiện) -->
+            <tr v-if="selectedBomId === bom.id">
+              <td colspan="4">
+                <BomItems :bomId="bom.id" />
+              </td>
+            </tr>
+          </template>
         </tbody>
-
-
       </table>
-  
+
       <!-- Modal Thêm/Sửa BOM -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
-          <h5>{{ isEditing ? '✏️ Sửa BOM' : '➕ Thêm BOM' }}</h5>
+          <h5 class="flex items-center gap-2 mb-3">
+            <component :is="isEditing ? Pencil : Plus" class="w-5 h-5" />
+            {{ isEditing ? 'Sửa BOM' : 'Thêm BOM' }}
+          </h5>
           <form @submit.prevent="submitForm">
             <div class="mb-2">
               <label>Mã BOM (ID)</label>
@@ -62,14 +73,28 @@
       </div>
     </div>
   </template>
-  
+
   <script>
   import { mapState, mapActions } from 'vuex';
   import BomItems from './BomItems.vue';
   import '@/assets/modal.css';
-  
+  import {
+    ClipboardList,
+    Plus,
+    Eye,
+    Pencil,
+    Trash2
+  } from 'lucide-vue-next';
+
   export default {
-    components: { BomItems },
+    components: {
+      BomItems,
+      ClipboardList,
+      Plus,
+      Eye,
+      Pencil,
+      Trash2
+    },
     props: ['productId'],
     data() {
       return {
@@ -130,4 +155,3 @@
     }
   };
   </script>
-  

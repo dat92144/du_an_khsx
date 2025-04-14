@@ -47,7 +47,7 @@ class PurchaseRequestController extends Controller
         ->where('material_id', $purchaseRequest->material_id)
         ->first();
 
-        if ($existingOrder) {
+        if ($existingOrder) { 
             return response()->json(['message' => 'Đơn hàng đã tồn tại!'], 400);
         }
         $order = PurchaseOrder::create([

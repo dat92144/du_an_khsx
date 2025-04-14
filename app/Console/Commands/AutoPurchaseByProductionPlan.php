@@ -43,7 +43,8 @@ class AutoPurchaseByProductionPlan extends Command
                 $this->info("👉 Đang xử lý đề xuất mua hàng cho đơn hàng Order ID: $orderId");
 
                 foreach ($orders as $order) {
-                    $productId = $order->product_id;
+                    $productId = $order->product_id ?? $order->semi_finished_product_id;
+                    $this->info("Đây là sản phẩm: $productId");
                     $orderQuantity = $order->order_quantity;
                     $startDate = Carbon::parse($order->order_date);
 

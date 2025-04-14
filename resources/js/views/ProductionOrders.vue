@@ -1,7 +1,9 @@
 <template>
     <div class="container mt-4">
-      <h2>📦 Danh sách Kế hoạch Sản Xuất</h2>
-  
+      <h2 class="flex items-center gap-2 text-xl font-bold mb-3">
+        <PackageCheck class="w-5 h-5" /> Danh sách Kế hoạch Sản Xuất
+      </h2>
+
       <table class="table table-bordered mt-3">
         <thead>
           <tr>
@@ -24,8 +26,8 @@
               <td>{{ formatDate(order.end_date) }}</td>
               <td>{{ order.status }}</td>
               <td>
-                <button class="btn btn-sm btn-info" @click="toggleDetail(order.id)">
-                  👁️ Xem chi tiết
+                <button class="btn btn-sm btn-info d-flex align-items-center gap-1" @click="toggleDetail(order.id)">
+                  <Eye class="w-4 h-4" /> Xem chi tiết
                 </button>
               </td>
             </tr>
@@ -39,13 +41,18 @@
       </table>
     </div>
   </template>
-  
+
   <script>
   import { mapState, mapActions } from 'vuex';
   import ProductionPlans from '@/components/ProductionPlans.vue';
-  
+  import { PackageCheck, Eye } from 'lucide-vue-next';
+
   export default {
-    components: { ProductionPlans },
+    components: {
+      ProductionPlans,
+      PackageCheck,
+      Eye
+    },
     data() {
       return {
         selectedOrderId: null
@@ -70,4 +77,3 @@
     }
   };
   </script>
-  

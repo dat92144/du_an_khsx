@@ -8,7 +8,7 @@ use App\Models\OrderDetail;
 
 class Order extends Model {
     use HasFactory;
-    protected $table = 'orders';    
+    protected $table = 'orders';
     protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -17,10 +17,10 @@ class Order extends Model {
 
     public function customer() {
         return $this->belongsTo(Customer::class, 'customer_id');
-    }    
-   
-        public function orderDetails()
+    }
+
+    public function details()
     {
-        return $this->hasMany(OrderDetails::class, 'order_id');
+        return $this->hasMany(OrderDetail::class, 'order_id');
     }
 }

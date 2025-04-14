@@ -1,6 +1,8 @@
 <template>
     <div class="mt-3">
-      <button class="btn btn-success mb-2" @click="openAddModal">➕ Thêm</button>
+      <button class="btn btn-success mb-2 flex items-center gap-1" @click="openAddModal">
+        <Plus class="w-4 h-4" /> Thêm
+      </button>
 
       <table class="table table-striped">
         <thead>
@@ -27,8 +29,12 @@
             <td>{{ spec.machine_id }}</td>
             <td>{{ spec.process_id }}</td>
             <td>
-              <button class="btn btn-sm btn-primary me-2" @click="edit(spec)">✏️</button>
-              <button class="btn btn-sm btn-danger" @click="remove(spec.id)">🗑️</button>
+              <button class="btn btn-sm btn-primary me-2 flex items-center" @click="edit(spec)">
+                <Pencil class="w-4 h-4" />
+              </button>
+              <button class="btn btn-sm btn-danger flex items-center" @click="remove(spec.id)">
+                <Trash2 class="w-4 h-4" />
+              </button>
             </td>
           </tr>
         </tbody>
@@ -37,7 +43,10 @@
       <!-- Modal -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
-          <h5>{{ isEditing ? '✏️ Sửa' : '➕ Thêm' }} Spec</h5>
+          <h5 class="flex items-center gap-2 mb-3">
+            <component :is="isEditing ? Pencil : Plus" class="w-5 h-5" />
+            {{ isEditing ? 'Sửa' : 'Thêm' }} Spec
+          </h5>
           <form @submit.prevent="submitForm">
             <input v-if="isEditing" v-model="form.id" type="hidden" />
             <div class="mb-2"><label>Tên</label><input v-model="form.name" class="form-control" /></div>
@@ -58,8 +67,14 @@
 
   <script>
   import { mapState, mapActions } from 'vuex';
+  import { Plus, Pencil, Trash2 } from 'lucide-vue-next';
 
   export default {
+    components: {
+      Plus,
+      Pencil,
+      Trash2
+    },
     props: ['productId'],
     data() {
       return {

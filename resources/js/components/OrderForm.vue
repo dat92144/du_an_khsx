@@ -1,62 +1,66 @@
 <template>
     <div class="modal-overlay">
       <div class="modal-content">
-        <h3 class="mb-3 font-bold">
-          {{ isEditing ? '✏️ Sửa đơn hàng' : '➕ Thêm đơn hàng' }}
+        <h3 class="mb-3 font-bold flex items-center gap-2">
+          <component :is="isEditing ? Pencil : Plus" class="w-5 h-5" />
+          {{ isEditing ? 'Sửa đơn hàng' : 'Thêm đơn hàng' }}
         </h3>
-  
+
         <form @submit.prevent="submitForm">
+          <!-- Thông tin đơn hàng -->
           <div class="mb-3">
-            <label class="form-label">Mã đơn hàng</label>
+            <label>Mã đơn hàng</label>
             <input v-model="form.id" class="form-control" :readonly="isEditing" required />
           </div>
           <div class="mb-3">
-            <label class="form-label">Mã khách hàng</label>
+            <label>Mã khách hàng</label>
             <input v-model="form.customer_id" class="form-control" required />
           </div>
           <div class="mb-3">
-            <label class="form-label">Ngày đặt</label>
+            <label>Ngày đặt</label>
             <input type="date" v-model="form.order_date" class="form-control" required />
           </div>
           <div class="mb-3">
-            <label class="form-label">Ngày giao</label>
+            <label>Ngày giao</label>
             <input type="date" v-model="form.delivery_date" class="form-control" required />
           </div>
-  
-          <h4 class="mt-4 font-semibold">🛒 Danh sách sản phẩm</h4>
-  
-          <div v-for="(detail, index) in form.details" :key="index" class="border p-3 mb-2 rounded">
+
+          <h4 class="mt-4 font-semibold flex items-center gap-2">
+            <ShoppingCart class="w-5 h-5" /> Danh sách sản phẩm
+          </h4>
+
+          <div v-for="(detail, index) in form.details" :key="index" class="border p-3 mb-3 rounded">
             <div class="mb-2">
-              <label class="form-label">Mã chi tiết</label>
+              <label>Mã chi tiết</label>
               <input v-model="detail.id" class="form-control" required />
             </div>
             <div class="mb-2">
-              <label class="form-label">Mã đơn hàng</label>
-              <input v-model="form.id" class="form-control" :readonly="isEditing" required />
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Sản phẩm</label>
-              <select v-model="detail.product_id" class="form-control" required>
-                <option value="">-- Chọn sản phẩm --</option>
-                <option v-for="product in products" :key="product.id" :value="product.id">
-                  {{ product.name }} ({{ product.id }})
-                </option>
-              </select>
-            </div>
-            <div class="mb-2">
-              <label class="form-label">Loại sản phẩm</label>
+              <label>Loại sản phẩm</label>
               <select v-model="detail.product_type" class="form-control" required>
-                <option value="">-- Chọn loại sản phẩm --</option>
+                <option disabled value="">-- Chọn loại --</option>
                 <option value="product">Thành phẩm</option>
                 <option value="semi_finished_product">Bán thành phẩm</option>
               </select>
             </div>
             <div class="mb-2">
-              <label class="form-label">Số lượng</label>
+              <label>Mã sản phẩm</label>
+              <select v-model="detail.product_id" class="form-control" required>
+                <option value="">-- Chọn sản phẩm --</option>
+                <option
+                  v-for="item in getProductList(detail.product_type)"
+                  :key="item.id"
+                  :value="item.id"
+                >
+                  {{ item.name }} ({{ item.id }})
+                </option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label>Số lượng</label>
               <input type="number" min="1" v-model="detail.quantity_product" class="form-control" required />
             </div>
             <div class="mb-2">
-              <label class="form-label">Đơn vị</label>
+              <label>Đơn vị</label>
               <select v-model="detail.unit_id" class="form-control" required>
                 <option value="">-- Chọn đơn vị --</option>
                 <option v-for="unit in units" :key="unit.id" :value="unit.id">
@@ -64,31 +68,54 @@
                 </option>
               </select>
             </div>
-            <button type="button" class="btn btn-danger btn-sm mt-2" @click="removeDetail(index)">🗑️ Xoá</button>
+            <button class="btn btn-danger mt-2 flex items-center gap-1" @click="removeDetail(index)" type="button">
+              <Trash2 class="w-4 h-4" /> Xoá
+            </button>
           </div>
-  
-          <button type="button" class="btn btn-secondary mt-2" @click="addDetail">
-            ➕ Thêm sản phẩm
+
+          <button class="btn btn-secondary flex items-center gap-1" @click="addDetail" type="button">
+            <Plus class="w-4 h-4" /> Thêm sản phẩm
           </button>
-  
+
           <div class="mt-4">
-            <button class="btn btn-success" type="submit">💾 Lưu đơn hàng</button>
-            <button class="btn btn-secondary ms-2" type="button" @click="$emit('close')">❌ Huỷ</button>
+            <button class="btn btn-success flex items-center gap-1" type="submit">
+              <Save class="w-4 h-4" /> Lưu đơn hàng
+            </button>
+            <br>
+            <button class="btn btn-secondary ms-2 flex items-center gap-1" @click="$emit('close')" type="button">
+              <X class="w-4 h-4" /> Huỷ
+            </button>
           </div>
         </form>
       </div>
     </div>
   </template>
-  
+
   <script>
   import { mapState, mapActions } from 'vuex'
-  
+  import {
+    Plus,
+    Pencil,
+    Trash2,
+    ShoppingCart,
+    Save,
+    X
+  } from 'lucide-vue-next'
+
   export default {
     props: {
       order: Object,
       isEditing: Boolean
     },
     emits: ['save', 'close'],
+    components: {
+      Plus,
+      Pencil,
+      Trash2,
+      ShoppingCart,
+      Save,
+      X
+    },
     data() {
       return {
         form: {
@@ -102,46 +129,41 @@
     },
     computed: {
       ...mapState({
-        products: state => state.products.products, // danh sách sản phẩm từ module products
-        units: state => state.units.units // danh sách đơn vị từ module units
+        products: state => state.products.products,
+        semiProducts: state => state.products.semiProducts,
+        units: state => state.units.units
       })
     },
     watch: {
-        order: {
-            immediate: true,
-            handler(newOrder) {
-            if (newOrder) {
-                const copy = JSON.parse(JSON.stringify(newOrder));
-
-                // 🔧 Chuẩn hoá định dạng ngày
-                const formatDate = (dateStr) => {
-                if (!dateStr) return '';
-                return dateStr.length >= 10 ? dateStr.slice(0, 10) : dateStr;
-                };
-
-                copy.order_date = formatDate(copy.order_date);
-                copy.delivery_date = formatDate(copy.delivery_date);
-                copy.created_at = formatDate(copy.created_at);
-                copy.updated_at = formatDate(copy.updated_at);
-
-                this.form = copy;
-                }else{
-                    this.resetForm();
-                }
-            }
+      order: {
+        immediate: true,
+        handler(newOrder) {
+          if (newOrder) {
+            const copy = JSON.parse(JSON.stringify(newOrder));
+            const formatDate = str => str?.slice(0, 10);
+            copy.order_date = formatDate(copy.order_date);
+            copy.delivery_date = formatDate(copy.delivery_date);
+            this.form = copy;
+          } else {
+            this.resetForm();
+          }
         }
+      }
     },
     methods: {
       ...mapActions({
         fetchProducts: 'products/fetchProducts',
+        fetchSemiProducts: 'products/fetchSemiProducts',
         fetchUnits: 'units/fetchUnits'
       }),
+      getProductList(type) {
+        return type === 'product' ? this.products : this.semiProducts || [];
+      },
       addDetail() {
         this.form.details.push({
           id: '',
-          order_id: '',
-          product_id: '',
           product_type: '',
+          product_id: '',
           quantity_product: 1,
           unit_id: ''
         });
@@ -151,8 +173,9 @@
       },
       submitForm() {
         this.form.details = this.form.details.map(detail => ({
-            ...detail,
-            order_id: this.form.id
+          ...detail,
+          order_id: this.form.id,
+          product_id: detail.product_id || null
         }));
         this.$emit('save', this.form);
       },
@@ -168,8 +191,26 @@
     },
     mounted() {
       this.fetchProducts();
+      this.fetchSemiProducts();
       this.fetchUnits();
     }
-  };
+  }
   </script>
-  
+
+  <style scoped>
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 700px;
+  }
+  </style>

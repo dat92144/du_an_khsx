@@ -1,9 +1,13 @@
 <template>
     <div class="container mt-4">
-      <h2>🚲 Danh sách Sản Phẩm</h2>
+      <h2 class="flex items-center gap-2 text-xl font-semibold">
+        <Bike class="w-5 h-5" /> Danh sách Sản Phẩm
+      </h2>
 
       <!-- Nút Thêm -->
-      <button class="btn btn-success mb-3" @click="openAddModal">➕ Thêm Sản Phẩm</button>
+      <button class="btn btn-success mb-3 flex items-center gap-1" @click="openAddModal">
+        <Plus class="w-4 h-4" /> Thêm Sản Phẩm
+      </button>
 
       <!-- Bảng sản phẩm -->
       <table class="table table-striped">
@@ -23,35 +27,45 @@
             <td>{{ product.description }}</td>
             <td>{{ new Date(product.created_at).toLocaleDateString() }}</td>
             <td>
-              <button class="btn btn-info btn-sm me-2" @click="toggleDetail(product.id)">👁️ Xem chi tiết</button>
-              <button class="btn btn-primary btn-sm me-2" @click="openEditModal(product)">✏️ Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="deleteProduct(product.id)">🗑️ Xoá</button>
+              <button class="btn btn-info btn-sm me-2 flex items-center gap-1" @click="toggleDetail(product.id)">
+                <Eye class="w-4 h-4" /> Xem chi tiết
+              </button>
+              <button class="btn btn-primary btn-sm me-2 flex items-center gap-1" @click="openEditModal(product)">
+                <Pencil class="w-4 h-4" /> Sửa
+              </button>
+              <button class="btn btn-danger btn-sm flex items-center gap-1" @click="deleteProduct(product.id)">
+                <Trash2 class="w-4 h-4" /> Xoá
+              </button>
             </td>
           </tr>
+
           <!-- Chi tiết sản phẩm -->
           <tr v-if="currentProduct" :key="currentProduct.id + '-detail'">
             <td colspan="5">
-                <div class="card p-3">
-                <h5>🔗 BOM</h5>
+              <div class="card p-3">
+                <h5 class="flex items-center gap-2"><Link2 class="w-4 h-4" /> BOM</h5>
                 <BomList :productId="currentProduct.id" />
 
                 <hr />
-                <h5>🔧 Thông số kỹ thuật</h5>
+                <h5 class="flex items-center gap-2"><Wrench class="w-4 h-4" /> Thông số kỹ thuật</h5>
                 <SpecList :productId="currentProduct.id" />
 
                 <hr />
-                <h5>🔢 Danh sách Giá trị Thuộc tính</h5>
+                <h5 class="flex items-center gap-2"><SlidersHorizontal class="w-4 h-4" /> Danh sách Giá trị Thuộc tính</h5>
                 <SpecAttributes :productId="currentProduct.id" />
-                </div>
+              </div>
             </td>
-            </tr>
+          </tr>
         </tbody>
       </table>
 
       <!-- Modal Thêm/Sửa -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
-          <h3 class="mb-3">{{ isEditing ? '✏️ Sửa Sản Phẩm' : '➕ Thêm Sản Phẩm' }}</h3>
+          <h3 class="mb-3 flex items-center gap-2">
+            <component :is="isEditing ? Pencil : Plus" class="w-5 h-5" />
+            {{ isEditing ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm' }}
+          </h3>
           <form @submit.prevent="submitForm">
             <div class="mb-3">
               <label class="form-label">Mã sản phẩm (ID)</label>
@@ -82,8 +96,31 @@
   import SpecAttributes from '../components/SpecAttributes.vue';
   import '@/assets/modal.css';
 
+  import {
+    Bike,
+    Plus,
+    Pencil,
+    Trash2,
+    Eye,
+    Link2,
+    Wrench,
+    SlidersHorizontal
+  } from 'lucide-vue-next';
+
   export default {
-    components: { BomList, SpecList, SpecAttributes },
+    components: {
+      BomList,
+      SpecList,
+      SpecAttributes,
+      Bike,
+      Plus,
+      Pencil,
+      Trash2,
+      Eye,
+      Link2,
+      Wrench,
+      SlidersHorizontal
+    },
     data() {
       return {
         showModal: false,
@@ -99,8 +136,8 @@
     computed: {
       ...mapState('products', ['products']),
       currentProduct() {
-            return this.products.find(p => p.id === this.detailProductId) || null;
-        }
+        return this.products.find(p => p.id === this.detailProductId) || null;
+      }
     },
     methods: {
       ...mapActions('products', ['fetchProducts', 'createProduct', 'updateProduct', 'deleteProductById']),

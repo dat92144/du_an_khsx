@@ -15,32 +15,36 @@ class ProductionPlanningController extends Controller
 {
     public function autoPlan()
     {
-        $orders = Order::where('status', 'confirmed')
+        $orders = Order::where('status', 'approved')
             ->orderBy('order_date')
-            ->with('orderDetails')
+            ->with('details')
             ->get();
-
+    
         foreach ($orders as $order) {
-            foreach ($order->orderDetails as $detail) {
-                $product = Product::find($detail->product_id);
-                if (!$product) continue;
-
+            foreach ($order->details as $detail) {
+                $productId = $detail->product_id ?? null;
+                $semiProductId = $detail->semi_finished_product_id ?? null;
                 $productType = $detail->product_type ?? 'product';
-                $spec = Spec::where('product_id', $product->id)->first();
-                $lotSize = $spec->lot_size ?? 1;
-
-                $routing = RoutingBom::where('product_id', $product->id)
-                    ->orderBy('step_order')
+                $targetId = $productType === 'product' ? $productId : $semiProductId;
+                $unit = $detail->unit_id ?? null;
+                if (!$targetId) continue;
+    
+                $specs = Spec::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)
+                    ->orderBy('process_id')
                     ->get();
-                if ($routing->isEmpty()) continue;
-
-                $bomId = DB::table('boms')->where('product_id', $product->id)->value('id');
+    
+                if ($specs->isEmpty()) continue;
+    
+                $bomId = DB::table('boms')
+                    ->where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)
+                    ->value('id');
                 if (!$bomId) continue;
-
+    
                 $productionOrderId = $this->generateId('production_orders', 'PRODOR');
                 ProductionOrder::create([
                     'id' => $productionOrderId,
-                    'product_id' => $product->id,
+                    'product_id' => $productId,
+                    'semi_finished_product_id' => $semiProductId,
                     'order_id' => $order->id,
                     'order_quantity' => $detail->quantity_product,
                     'order_date' => $order->order_date,
@@ -48,29 +52,30 @@ class ProductionPlanningController extends Controller
                     'bom_id' => $bomId,
                     'producing_status' => 'planned',
                 ]);
-
+    
+                $lotSize = $specs->first()->lot_size ?? 1;
                 $totalQty = $detail->quantity_product;
                 $numLots = ceil($totalQty / $lotSize);
                 $startDate = Carbon::now();
-
+    
                 for ($lot = 1; $lot <= $numLots; $lot++) {
                     $lotQty = ($lot == $numLots) ? $totalQty - $lotSize * ($numLots - 1) : $lotSize;
-
-                    foreach ($routing as $step) {
+    
+                    foreach ($specs as $step) {
                         $machineId = $step->machine_id;
                         $cycleTime = $step->cycle_time ?? 0;
                         $durationMinutes = ceil($cycleTime * $lotQty);
-
+    
                         $remaining = $this->getRemainingCapacity($machineId, $startDate);
                         if ($remaining < $lotQty) {
                             $startDate->addDay();
                             $lot--;
                             continue 2;
                         }
-
+    
                         $startTime = $this->getAvailableTime($machineId, $durationMinutes, $startDate);
                         $endTime = (clone $startTime)->addMinutes($durationMinutes);
-
+    
                         $machineScheduleId = $this->generateId('machine_schedules', 'MS');
                         MachineSchedule::create([
                             'id' => $machineScheduleId,
@@ -80,12 +85,13 @@ class ProductionPlanningController extends Controller
                             'end_time' => $endTime,
                             'status' => 'scheduled'
                         ]);
-
+    
                         $planId = $this->generateId('production_plans', 'PLAN', 3, 'plan_id');
                         ProductionPlan::create([
                             'plan_id' => $planId,
                             'order_id' => $order->id,
-                            'product_id' => $product->id,
+                            'product_id' => $productId,
+                            'semi_finished_product_id' => $semiProductId,
                             'lot_number' => $lot,
                             'lot_size' => $lotQty,
                             'total_quantity' => $totalQty,
@@ -96,33 +102,38 @@ class ProductionPlanningController extends Controller
                             'delivery_date' => $order->delivery_date,
                             'status' => 'planned'
                         ]);
-
+    
                         $startDate = $endTime;
                     }
-
+    
                     $historyId = $this->generateId('production_histories', 'HIST');
                     ProductionHistory::create([
                         'id' => $historyId,
                         'production_order_id' => $productionOrderId,
-                        'product_id' => $product->id,
+                        'product_id' => $productId,
                         'completed_quantity' => $lotQty,
                         'date' => now(),
                     ]);
-
-                    // Cập nhật kho theo loại sản phẩm
+    
+                    // Cập nhật kho theo loại
                     if ($productType === 'semi_finished_product') {
-                        DB::table('inventory_semi_products')->updateOrInsert(
-                            ['semi_product_id' => $product->id],
-                            ['quantity' => DB::raw("quantity + $lotQty")]
+                        DB::table('inventories')->updateOrInsert(
+                            ['item_id' => $semiProductId],
+                            ['item_type' => 'semi_finished_product'],
+                            ['quantity' => DB::raw("quantity + $lotQty")],
+                            ['unit_id'=> $unit]
                         );
                     } else {
-                        DB::table('inventory_products')->updateOrInsert(
-                            ['product_id' => $product->id],
-                            ['quantity' => DB::raw("quantity + $lotQty")]
+                        DB::table('inventories')->updateOrInsert(
+                            ['item_id' => $productId],
+                            ['item_type' => 'product'],
+                            ['quantity' => DB::raw("quantity + $lotQty")],
+                            ['unit_id'=> $unit]
                         );
                     }
-
-                    $bomItems = BomItem::where('product_id', $product->id)->get();
+    
+                    // Trừ NVL từ bom_items
+                    $bomItems = BomItem::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)->get();
                     foreach ($bomItems as $item) {
                         $used = $item->quantity_input * $lotQty;
                         DB::table('inventory_materials')
@@ -130,13 +141,13 @@ class ProductionPlanningController extends Controller
                             ->decrement('quantity', $used);
                     }
                 }
-
+    
                 $order->update(['status' => 'planned']);
             }
         }
-
+    
         return response()->json(['message' => 'Đã lập kế hoạch sản xuất tự động.']);
-    }
+    }    
 
     public function getPlans()
     {

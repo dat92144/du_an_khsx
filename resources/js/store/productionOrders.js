@@ -69,18 +69,49 @@ const actions = {
         headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
       });
 
-      const tasks = res.data.map(item => {
+      const tasks = [];
+
+      // Tạo tập hợp đơn hàng + sản phẩm
+      const orders = {};
+
+      res.data.forEach(item => {
+        if (!orders[item.order_id]) {
+          orders[item.order_id] = {
+            id: item.order_id,
+            text: `Đơn hàng ${item.order_id}`,
+            start_date: item.start_time,
+            duration: 1,
+            parent: 0
+          };
+          tasks.push(orders[item.order_id]);
+        }
+
+        const productKey = `${item.order_id}-${item.product_id}`;
+
+        if (!orders[productKey]) {
+          orders[productKey] = {
+            id: productKey,
+            text: item.product?.name ?? "Sản phẩm",
+            start_date: item.start_time,
+            duration: 1,
+            parent: item.order_id
+          };
+          tasks.push(orders[productKey]);
+        }
+
         const start = new Date(item.start_time);
         const end = new Date(item.end_time);
-        const duration = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+        const duration = Math.max(1, Math.ceil(
+          (new Date(item.end_time) - new Date(item.start_time)) / (1000 * 60) // phút
+        ));
 
-        return {
+        tasks.push({
           id: item.plan_id,
-          text: item.process?.name ?? "Kế hoạch",
+          text: item.process?.name ?? "Công đoạn",
           start_date: item.start_time,
           duration: duration,
-          parent: 0
-        };
+          parent: productKey
+        });
       });
 
       commit('SET_PRODUCTION_PLANS', {
@@ -91,6 +122,7 @@ const actions = {
       console.error("❌ Lỗi khi lấy production plans:", err);
     }
   }
+
 };
 
 export default {

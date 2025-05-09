@@ -7,7 +7,7 @@
     <table class="table table-bordered mt-3">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>Mã đơn hàng</th>
           <th>Sản phẩm</th>
           <th>Khách hàng</th>
           <th>Ngày đặt</th>
@@ -19,11 +19,11 @@
       <tbody>
         <template v-for="order in productionOrders" :key="order.id">
           <tr>
-            <td>{{ order.id }}</td>
+            <td>{{ order.order_id }}</td>
             <td>{{ order.product_name || 'Không xác định' }}</td>
             <td>{{ order.customer_name || 'Không xác định' }}</td>
-            <td>{{ formatDate(order.order_date) }}</td>
-            <td>{{ formatDate(order.delivery_date) }}</td>
+            <td>{{ formatDate(order.start_date) }}</td>
+            <td>{{ formatDate(order.end_date) }}</td>
             <td>{{ order.producing_status || order.status }}</td>
             <td>
               <button class="btn btn-sm btn-info d-flex align-items-center gap-1" @click="toggleDetail(order.id)">

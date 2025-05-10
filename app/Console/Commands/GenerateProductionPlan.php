@@ -17,20 +17,24 @@ class GenerateProductionPlan extends Command
 
     public function handle()
     {
-        $this->info("\n🔍 Đang tìm các ProductionOrders cần lập kế hoạch...");
+        $this->info("\n🔍 Dang tim cac ProductionOrders can lap ke hoach...");
 
         $orders = ProductionOrder::where('producing_status', 'pending')->get();
 
         if ($orders->isEmpty()) {
-            $this->warn("✅ Không có ProductionOrder nào cần lập kế hoạch.");
+            $this->warn("✅ Khong co ProductionOrder nao can lap ke hoach.");
             return 0;
         }
 
+        // Load lich may truoc 1 lan duy nhat
+        $scheduleMap = MachineSchedule::where('end_time', '>', now())->get()->groupBy('machine_id');
+
         foreach ($orders as $order) {
-            $this->info("\n➡ Đang xử lý ProductionOrder: {$order->id}");
+            $this->info("\n➞ Dang xu ly ProductionOrder: {$order->id}");
 
             try {
-                // Gom các mối liên hệ từ bom_items
+                $startTime = microtime(true);
+
                 $bomItems = BomItem::where('product_id', $order->product_id)->get();
                 $linkedSemi = $bomItems->where('material_type', 'semi_finished_product')->pluck('input_material_id')->toArray();
 
@@ -49,38 +53,38 @@ class GenerateProductionPlan extends Command
                     }
                 }
 
-                // 1. Sản xuất bán thành phẩm nếu có liên quan
                 foreach ($semiFirst as $semiId => $semiOrder) {
                     if (in_array($semiId, $linkedSemi)) {
-                        $this->generatePlanForOrder($semiOrder);
+                        $this->generatePlanForOrder($semiOrder, $scheduleMap);
                         $semiOrder->update(['producing_status' => 'planned']);
-                        $this->info("✔ Đã lập kế hoạch cho bán thành phẩm liên quan: {$semiOrder->id}");
+                        $this->info("✔ Da lap ke hoach cho ban thanh pham lien quan: {$semiOrder->id}");
                     }
                 }
 
-                // 2. Sản xuất sản phẩm chính sau khi bán thành phẩm sẵn sàng
-                $this->generatePlanForOrder($order);
+                $this->generatePlanForOrder($order, $scheduleMap);
                 $order->update(['producing_status' => 'planned']);
-                $this->info("✔ Đã lập kế hoạch cho sản phẩm chính: {$order->id}");
+                $this->info("✔ Da lap ke hoach cho san pham chinh: {$order->id}");
 
-                // 3. Các bán thành phẩm và sản phẩm không liên quan thì xử lý lần lượt sau
                 foreach ($relatedOrders as $rel) {
                     if ($rel->producing_status === 'pending' && $rel->id !== $order->id) {
-                        $this->generatePlanForOrder($rel);
+                        $this->generatePlanForOrder($rel, $scheduleMap);
                         $rel->update(['producing_status' => 'planned']);
-                        $this->info("✔ Đã lập kế hoạch riêng cho: {$rel->id}");
+                        $this->info("✔ Da lap ke hoach rieng cho: {$rel->id}");
                     }
                 }
 
+                $duration = round(microtime(true) - $startTime, 2);
+                $this->line("⏱️  Thoi gian xu ly: {$duration} giay\n");
+
             } catch (\Throwable $e) {
-                $this->error("❌ Lỗi khi xử lý {$order->id}: " . $e->getMessage());
+                $this->error("❌ Loi khi xu ly {$order->id}: " . $e->getMessage());
             }
         }
 
         return 0;
     }
 
-    private function generatePlanForOrder($order)
+    private function generatePlanForOrder($order, $scheduleMap)
     {
         $targetId = $order->product_id ?? $order->semi_finished_product_id;
         $productType = $order->product_id ? 'product' : 'semi_finished_product';
@@ -90,42 +94,48 @@ class GenerateProductionPlan extends Command
             ->get();
 
         if ($specs->isEmpty()) {
-            throw new \Exception("Không tìm thấy quy trình sản xuất (spec)");
+            throw new \Exception("Khong tim thay quy trinh san xuat (spec)");
         }
 
         $lotSize = $specs->first()->lot_size ?? 1;
         $totalQty = $order->order_quantity;
         $numLots = ceil($totalQty / $lotSize);
         $now = now();
-        $startDate = $now->hour < 8 ? $now->copy()->setTime(8, 0) : $now;
+        $startDate = $now->hour < 8 ? $now->copy()->setTime(8, 0) : $now->copy()->addDay()->setTime(8, 0);
 
-        //$startDate = Carbon::now()->setTime(8, 0); // Bắt đầu ngày mới lúc 08:00
-
+        $this->line("📦 Tong so lo: $numLots | Kich co moi lo: $lotSize");
+        $loggedMachines = [];
         for ($lot = 1; $lot <= $numLots; $lot++) {
             $lotQty = ($lot == $numLots) ? $totalQty - $lotSize * ($numLots - 1) : $lotSize;
-
             $stepStart = clone $startDate;
+
+            $this->line("➞️  Lo $lot/$numLots (" . round($lot * 100 / $numLots) . "%) | So luong: $lotQty");
 
             foreach ($specs as $step) {
                 $machineId = $step->machine_id;
                 $cycleTime = $step->cycle_time ?? 0;
                 $durationMinutes = ceil($cycleTime * $lotQty);
+                $maxWaitDays = 30;
+                $waited = 0;
 
-                // Không còn getAvailableTime vì phải tuần tự theo quy trình
-                $remaining = $this->getRemainingCapacity($machineId, $stepStart);
-                if ($remaining < $lotQty) {
+                while ($this->isMachineBusyCached($machineId, $stepStart, $durationMinutes, $scheduleMap)) {
+                    $logKey = $machineId . '|' . $stepStart->toDateString();
+                    if (!isset($loggedMachines[$logKey])) {
+                        $this->line("⏳ May $machineId dang ban vao " . $stepStart->toDateTimeString() . ", thu lai ngay mai...");
+                        $loggedMachines[$logKey] = true;
+                    }
                     $stepStart->addDay()->setTime(8, 0);
-                    $lot--; // thử lại lô này ngày hôm sau
-                    continue 2;
+                    $waited++;
+                    if ($waited > $maxWaitDays) {
+                        throw new \Exception("⛔ May {$machineId} ban suot $maxWaitDays ngay, khong the lap ke hoach lo {$lot}.");
+                    }
                 }
 
                 $startTime = clone $stepStart;
                 $endTime = (clone $startTime)->addMinutes($durationMinutes);
 
-                // Tạo lịch máy
-                $scheduleId = $this->generateId('machine_schedules', 'MS');
                 MachineSchedule::create([
-                    'id' => $scheduleId,
+                    //'id' => $this->generateIdFast('machine_schedules', 'MS'),
                     'machine_id' => $machineId,
                     'production_order_id' => $order->id,
                     'start_time' => $startTime,
@@ -133,10 +143,8 @@ class GenerateProductionPlan extends Command
                     'status' => 'scheduled'
                 ]);
 
-                // Tạo kế hoạch
-                $planId = $this->generateId('production_plans', 'PLAN', 3, 'plan_id');
                 ProductionPlan::create([
-                    'plan_id' => $planId,
+                    //'plan_id' => $this->generateIdFast('production_plans', 'PLAN', 'plan_id'),
                     'order_id' => $order->order_id,
                     'product_id' => $order->product_id,
                     'semi_finished_product_id' => $order->semi_finished_product_id,
@@ -151,14 +159,11 @@ class GenerateProductionPlan extends Command
                     'status' => 'planned'
                 ]);
 
-                // cập nhật thời gian bắt đầu cho bước kế tiếp
                 $stepStart = clone $endTime;
             }
 
-            // Lưu lịch sử và tồn kho như cũ
-            $historyId = $this->generateId('production_histories', 'HIST');
             ProductionHistory::create([
-                'id' => $historyId,
+                //'id' => $this->generateIdFast('production_histories', 'HIST'),
                 'production_order_id' => $order->id,
                 'product_id' => $order->product_id,
                 'completed_quantity' => $lotQty,
@@ -181,44 +186,39 @@ class GenerateProductionPlan extends Command
                     ->where('material_id', $item->input_material_id)
                     ->decrement('quantity', $used);
             }
+
+            $startDate = clone $stepStart;
         }
+
+        $this->line("📅 Ngay ket thuc du kien: " . $stepStart->format('Y-m-d H:i'));
     }
 
-
-    private function getRemainingCapacity($machineId, $date)
+    private function isMachineBusyCached($machineId, $start, $durationMinutes, $schedulesByMachine)
     {
-        $capacity = DB::table('machine_capacity')
-            ->where('machine_id', $machineId)
-            ->value('max_output_per_day') ?? 999999;
+        $end = (clone $start)->addMinutes($durationMinutes);
 
-        $scheduled = DB::table('machine_schedules')
-            ->join('production_orders', 'machine_schedules.production_order_id', '=', 'production_orders.id')
-            ->where('machine_schedules.machine_id', $machineId)
-            ->whereDate('start_time', $date->toDateString())
-            ->sum('production_orders.order_quantity');
+        if (!isset($schedulesByMachine[$machineId])) return false;
 
-        return $capacity - $scheduled;
+        foreach ($schedulesByMachine[$machineId] as $schedule) {
+            if (
+                $schedule->start_time < $end &&
+                $schedule->end_time > $start
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private function getAvailableTime($machineId, $durationMinutes, $date)
+    private function generateIdFast($table, $prefix, $idColumn = 'id')
     {
-        $latest = DB::table('machine_schedules')
-            ->where('machine_id', $machineId)
-            ->whereDate('start_time', $date->toDateString())
-            ->orderBy('end_time', 'desc')
-            ->first();
-
-        return $latest ? Carbon::parse($latest->end_time) : $date->copy()->setTime(8, 0);
-    }
-
-    private function generateId($table, $prefix, $length = 3, $idColumn = 'id')
-    {
-        $latest = DB::table($table)
+        $maxId = DB::table($table)
             ->where($idColumn, 'like', $prefix . '%')
             ->orderBy($idColumn, 'desc')
             ->value($idColumn);
 
-        $number = $latest ? intval(substr($latest, strlen($prefix))) + 1 : 1;
-        return $prefix . str_pad($number, $length, '0', STR_PAD_LEFT);
+        $number = $maxId ? ((int)substr($maxId, strlen($prefix)) + 1) : 1;
+        return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
 }

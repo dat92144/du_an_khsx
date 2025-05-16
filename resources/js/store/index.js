@@ -13,6 +13,7 @@ import specAttributes from './specAttributes';
 import orders from './orders';
 import units from './units';
 import productionOrders from './productionOrders';
+import gantt from './gantt';
 const store = createStore({
     modules: {
         auth,
@@ -29,6 +30,7 @@ const store = createStore({
         orders,
         units,
         productionOrders,
+        gantt
     }
 });
 

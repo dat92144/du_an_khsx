@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\OrderDetail;
 class ProductionPlan extends Model {
     use HasFactory;
 
@@ -26,16 +26,18 @@ class ProductionPlan extends Model {
         return $this->belongsTo(Machine::class, 'machine_id');
     }
 
-    public function process()
-    {
-        return $this->belongsTo(Process::class, 'process_id');
-    }
     public function order()
     {
-        return $this->belongsTo(ProductionOrder::class, 'order_id');
+        return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
+
+    public function process()
+    {
+        return $this->belongsTo(Process::class, 'process_id', 'id');
     }
     public function orderDetails()
     {
-        return $this->hasMany(OrderDetails::class, 'order_id', 'order_id');
+        return $this->hasMany(OrderDetail::class, 'order_id', 'order_id');
     }
+
 }

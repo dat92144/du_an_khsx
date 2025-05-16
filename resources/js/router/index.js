@@ -11,6 +11,7 @@ import RawMaterials from '../views/RawMaterials.vue';
 import ProductList from '../views/ProductList.vue';
 import ProductionOrders from '../views/ProductionOrders.vue';
 
+
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', component: Login },

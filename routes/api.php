@@ -29,7 +29,8 @@ use App\Http\Controllers\{
     CustomerController,
     ProductionOrderController,
     ProductionHistoryController,
-    ProductionPlanningController
+    ProductionPlanningController,
+    GanttController
 };
 
 // Auth Routes
@@ -113,5 +114,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // MRP (nếu cần)
         // Route::get('/mrp', [PurchaseController::class, 'caculateMRP']);
+
+        Route::get('/gantt/orders', [GanttController::class, 'forOrders']);
+        Route::get('/gantt/product-lot', [GanttController::class, 'productWithLots']);
+        Route::get('/gantt/lot-detail', [GanttController::class, 'getLotDetail']);
+        Route::get('/gantt/machine', [GanttController::class, 'getMachineGantt']);
+
     });
 });

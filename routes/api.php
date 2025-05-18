@@ -53,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders
         Route::apiResource('orders', OrderController::class);
         Route::post('/orders/{id}/start-production', [OrderController::class, 'produce']);
+        Route::post('orders/estimate-delivery', [OrderController::class, 'estimateDelivery']);
 
         // Purchase Requests
         Route::apiResource('purchase-requests', PurchaseRequestController::class);

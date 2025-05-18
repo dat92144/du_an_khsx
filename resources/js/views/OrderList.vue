@@ -14,6 +14,7 @@
             <th class="px-4 py-2">Mã đơn</th>
             <th class="px-4 py-2">Khách hàng</th>
             <th class="px-4 py-2">Ngày đặt</th>
+            <th class="px-4 py-2">Ngày giao hàng</th>
             <th class="px-4 py-2">Trạng thái</th>
             <th class="px-4 py-2">Hành động</th>
           </tr>
@@ -23,6 +24,7 @@
             <td class="px-4 py-2">{{ order.id }}</td>
             <td class="px-4 py-2">{{ order.customer_id }}</td>
             <td class="px-4 py-2">{{ formatDate(order.order_date) }}</td>
+            <td class="px-4 py-2">{{ formatDate(order.delivery_date) }}</td>
             <td class="px-4 py-2">
               <span :class="order.status === 'approved' ? 'text-green-600' : 'text-yellow-600'">
                 {{ getStatusText(order.status) }}
@@ -71,7 +73,7 @@
                       {{ getProductName(detail.product_id || detail.semi_finished_product_id, detail.product_type) }}
                     </td>
                     <td class="p-2">{{ detail.quantity_product }}</td>
-                    <td class="p-2">{{ detail.unit_id }}</td>
+                    <td class="p-2">{{ getUnitName(detail.unit_id) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -126,7 +128,8 @@
       ...mapState('orders', ['orders']),
       ...mapState({
         products: state => state.products.products,
-        semiProducts: state => state.products.semiProducts
+        semiProducts: state => state.products.semiProducts,
+        units: state => state.units.units
       }),
       selectedOrderDetail() {
         return this.orders.find(o => o.id === this.detailOrderId) || null;
@@ -135,6 +138,8 @@
     methods: {
       ...mapActions('orders', ['fetchOrders', 'createOrder', 'updateOrder', 'deleteOrder', 'produceOrder']),
       ...mapActions('products', ['fetchProducts', 'fetchSemiProducts']),
+      ...mapActions('units', ['fetchUnits']),
+
 
       formatDate(dateStr) {
         return new Date(dateStr).toLocaleDateString();
@@ -150,7 +155,7 @@
           id: '',
           customer_id: '',
           order_date: '',
-          delivery_date: '',
+         // delivery_date: '',
           details: []
         };
         this.isEditing = false;
@@ -174,9 +179,14 @@
         this.closeModal();
         this.fetchOrders();
       },
+      getUnitName(unitId) {
+        const unit = this.units.find(u => u.id === unitId);
+        return unit ? unit.name : unitId;
+      },
       async handleDelete(id) {
+        console.log('👉 Bấm xoá đơn hàng:', id); // Thêm dòng này
         if (confirm('Bạn có chắc chắn muốn xoá đơn hàng này?')) {
-          await this.deleteOrder({ id });
+          await this.deleteOrder(id);
           this.fetchOrders();
         }
       },
@@ -194,6 +204,7 @@
       this.fetchOrders();
       this.fetchProducts();
       this.fetchSemiProducts();
+      this.fetchUnits();
     }
   };
   </script>

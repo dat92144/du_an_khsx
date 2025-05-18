@@ -34,8 +34,11 @@ class GenerateProductionPlan extends Command
 
             try {
                 $startTime = microtime(true);
-
-                $bomItems = BomItem::where('product_id', $order->product_id)->get();
+                if($order->product_id === null){
+                    $bomItems = BomItem::where('semi_finished_product_id', $order->semi_finished_product_id)->get();
+                }else{
+                    $bomItems = BomItem::where('product_id', $order->product_id)->get();
+                }
                 $linkedSemi = $bomItems->where('material_type', 'semi_finished_product')->pluck('input_material_id')->toArray();
 
                 $relatedOrders = ProductionOrder::where('order_id', $order->order_id)
@@ -87,8 +90,12 @@ class GenerateProductionPlan extends Command
     private function generatePlanForOrder($order, $scheduleMap)
     {
         $targetId = $order->product_id ?? $order->semi_finished_product_id;
-        $productType = $order->product_id ? 'product' : 'semi_finished_product';
-
+        if (!empty($order->product_id)) {
+            $productType = 'product';
+        } else {
+            $productType = 'semi_finished_product';
+        }
+        $this->info("🔍 product_id = {$order->product_id} | semi = {$order->semi_finished_product_id} | type = $productType");
         $specs = Spec::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)
             ->orderBy('process_id')
             ->get();
@@ -99,6 +106,23 @@ class GenerateProductionPlan extends Command
 
         $lotSize = $specs->first()->lot_size ?? 1;
         $totalQty = $order->order_quantity;
+        $unit_order = DB::table('order_details')
+            ->where('order_id', $order->order_id)
+            ->where(function ($query) use ($order) {
+                if ($order->product_id) {
+                    $query->where('product_id', $order->product_id);
+                } else {
+                    $query->where('semi_finished_product_id', $order->semi_finished_product_id);
+                }
+            })
+            ->value('unit_id');
+        $unit = DB::table('units')->where('id', $unit_order)->first();
+        // ✅ Nếu là bao, quy đổi sang tấn
+        if ($unit->name === 'Bao') {
+            $this->line("⚖️ Quy đổi đơn vị: $totalQty bao → " . ($totalQty * 0.05) . " tấn");
+            $totalQty = $totalQty * 0.05;
+        }
+
         $numLots = ceil($totalQty / $lotSize);
         $now = now();
         $startDate = $now->hour < 8 ? $now->copy()->setTime(8, 0) : $now->copy()->addDay()->setTime(8, 0);
@@ -146,8 +170,8 @@ class GenerateProductionPlan extends Command
                 ProductionPlan::create([
                     //'plan_id' => $this->generateIdFast('production_plans', 'PLAN', 'plan_id'),
                     'order_id' => $order->order_id,
-                    'product_id' => $order->product_id,
-                    'semi_finished_product_id' => $order->semi_finished_product_id,
+                    'product_id' => $productType === 'product' ? $targetId : null,
+                    'semi_finished_product_id' => $productType === 'semi_finished_product' ? $targetId : null,
                     'lot_number' => $lot,
                     'lot_size' => $lotQty,
                     'total_quantity' => $totalQty,

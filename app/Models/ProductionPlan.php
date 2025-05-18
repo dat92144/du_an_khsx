@@ -12,7 +12,7 @@ class ProductionPlan extends Model {
     public $incrementing = false;
     protected $table = 'production_plans';
     protected $fillable = [
-        'plan_id', 'order_id', 'product_id', 'lot_number', 'lot_size',
+        'plan_id', 'order_id', 'product_id','semi_finished_product_id', 'lot_number', 'lot_size',
         'total_quantity', 'machine_id', 'process_id',
         'start_time', 'end_time', 'delivery_date', 'status'
     ];

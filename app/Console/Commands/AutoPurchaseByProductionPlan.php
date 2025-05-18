@@ -44,7 +44,21 @@ class AutoPurchaseByProductionPlan extends Command
 
                 foreach ($orders as $order) {
                     $productId = $order->product_id ?? $order->semi_finished_product_id;
+                    $unit_order = DB::table('order_details')
+                        ->where('order_id', $order->order_id)
+                        ->where(function ($query) use ($productId) {
+                            $query->where('product_id', $productId)
+                                ->orWhere('semi_finished_product_id', $productId);
+                        })
+                        ->value('unit_id');
+                    $unit = DB::table('units')->where('id', $unit_order)->first();
+                    $this->info("Đây là đơn vị: $unit->name");
                     $this->info("Đây là sản phẩm: $productId");
+                    $orderQuantity = $order->order_quantity;
+                    if ($unit->name === 'Bao') {
+                        $orderQuantity = $orderQuantity * 0.05;
+                        $this->info("⚖️ Quy đổi đơn vị từ bao sang tấn: {$order->order_quantity} bao → $orderQuantity tấn");
+                    }
                     $orderQuantity = $order->order_quantity;
                     $startDate = Carbon::parse($order->order_date);
 

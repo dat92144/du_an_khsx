@@ -43,10 +43,14 @@ export default {
     },
 
     async deleteOrder({ dispatch }, id) {
-      await axios.delete(`/api/orders/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
-      });
-      await dispatch('fetchOrders');
+      try{
+        await axios.delete(`/api/orders/${id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+        });
+        await dispatch('fetchOrders');
+      }catch (error) {
+        console.error('❌ Lỗi khi xoá đơn hàng:', error);
+      }
     },
 
     async produceOrder({ dispatch }, id) {
@@ -54,6 +58,28 @@ export default {
         headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
       });
       await dispatch('fetchOrders');
+    },
+    async updateEstimatedDelivery() {
+      if (!this.form || !this.form.details || this.form.details.length === 0) return;
+
+      try {
+        const res = await axios.post('/api/orders/estimate-delivery', {
+          details: this.form.details
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+        });
+
+        this.form = {
+          ...this.form,
+          delivery_date: res.data.delivery_date?.slice(0, 10)
+        };
+      } catch (err) {
+        console.error('❌ Không thể ước lượng ngày giao hàng:', err);
+      }
     }
+
+
+
+
   }
 };

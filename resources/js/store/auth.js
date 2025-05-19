@@ -4,7 +4,7 @@ export default {
     state: {
         token: localStorage.getItem('auth_token') || null,
         user: JSON.parse(localStorage.getItem('user')) || null,
-        role: JSON.parse(localStorage.getItem('user_role')) || [] 
+        role: JSON.parse(localStorage.getItem('user_role')) || []
     },
     mutations: {
         SET_TOKEN(state, token) {
@@ -33,6 +33,22 @@ export default {
         }
     },
     actions: {
+        async register({ commit }, payload) {
+            try {
+                const res = await axios.post('/api/register', payload);
+                return res.data;
+            } catch (error) {
+                throw error;
+            }
+        },
+        async sendVerificationCode({ commit }, email) {
+            try {
+                const res = await axios.post('/api/send-verification-code', { email });
+                return res.data;
+            } catch (error) {
+                throw error.response?.data || error;
+            }
+        },
         async login({ commit }, credentials) {
             try {
                 console.log("📤 Gửi request đăng nhập:", credentials);
@@ -69,7 +85,7 @@ export default {
     },
     getters: {
         isAuthenticated: state => !!state.token,
-        userRole: state => state.role.length ? state.role[0] : null, 
+        userRole: state => state.role.length ? state.role[0] : null,
         getUser: state => state.user
     }
 };

@@ -63,7 +63,7 @@
           if (response.role.includes('Admin')) {
             router.push('/dashboard');
           } else {
-            router.push('/');
+            router.push('/page');
           }
         } catch (error) {
           errorMessage.value = 'Sai tài khoản hoặc mật khẩu!';

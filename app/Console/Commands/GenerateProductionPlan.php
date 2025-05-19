@@ -194,14 +194,14 @@ class GenerateProductionPlan extends Command
                 'date' => now(),
             ]);
 
-            DB::table('inventories')->updateOrInsert(
-                ['item_id' => $targetId],
-                [
-                    'item_type' => $productType,
-                    'quantity' => DB::raw("quantity + $lotQty"),
-                    'unit_id' => null
-                ]
-            );
+            // DB::table('inventories')->updateOrInsert(
+            //     ['item_id' => $targetId],
+            //     [
+            //         'item_type' => $productType,
+            //         'quantity' => DB::raw("quantity + $lotQty"),
+            //         'unit_id' => null
+            //     ]
+            // );
 
             $bomItems = BomItem::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)->get();
             foreach ($bomItems as $item) {

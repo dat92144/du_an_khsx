@@ -11,10 +11,19 @@ import RawMaterials from '../views/RawMaterials.vue';
 import ProductList from '../views/ProductList.vue';
 import ProductionOrders from '../views/ProductionOrders.vue';
 import store from '../store';
-
+import Home from '../views/Home.vue';
+import Forbidden from '../views/Forbidden.vue';
+import Register from '../views/Register.vue';
+import Page from '../views/Page.vue';
 const routes = [
-    { path: '/', redirect: '/login' },
+    // { path: '/', redirect: '/login' },
+    // { path: '/login', component: Login },
+
+    { path: '/', component: Home },
     { path: '/login', component: Login },
+    { path: '/forbidden', component: Forbidden },
+    { path: '/register', component: Register },
+    { path: '/page', component: Page, meta: { requiresAuth: true,} },
     {
         path: '/',
         component: main,
@@ -52,7 +61,7 @@ router.beforeEach((to, from, next) => {
         // 2. Nếu route yêu cầu role cụ thể
         if (to.meta.role && to.meta.role !== userRole) {
             console.warn(`❌ Truy cập bị chặn: cần quyền "${to.meta.role}", bạn là "${userRole}"`);
-            return next('/login'); // hoặc redirect đến /forbidden nếu bạn có trang đó
+            return next('/forbidden'); // hoặc redirect đến /forbidden nếu bạn có trang đó
         }
     }
 

@@ -2,32 +2,49 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+
 class SuppliersTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        DB::table('suppliers')->insert([
+        $suppliers = [
             [
-                'id' => 'sup001', 'name' => 'Nhà Cung Cấp A',
+                'id' => 'sup001',
+                'name' => 'Nhà Cung Cấp A',
                 'contact_info' => 'Email: supplierA@example.com, Phone: 0123456789',
-                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'sup002', 'name' => 'Nhà Cung Cấp B',
+                'id' => 'sup002',
+                'name' => 'Nhà Cung Cấp B',
                 'contact_info' => 'Email: supplierB@example.com, Phone: 0987654321',
-                'created_at' => now(), 'updated_at' => now(),
             ],
             [
-                'id' => 'sup003', 'name' => 'Nhà Cung Cấp C',
+                'id' => 'sup003',
+                'name' => 'Nhà Cung Cấp C',
                 'contact_info' => 'Email: supplierC@example.com, Phone: 0345678912',
-                'created_at' => now(), 'updated_at' => now(),
             ],
-        ]);
+            [
+                'id' => 'sup004',
+                'name' => 'Nhà cung cấp SFP001',
+                'contact_info' => 'Email: sfp001@supplier.com, Phone: 0111222333',
+            ],
+            [
+                'id' => 'sup005',
+                'name' => 'Nhà cung cấp MAT005',
+                'contact_info' => 'Email: mat005@supplier.com, Phone: 0999888777',
+            ],
+        ];
+
+        foreach ($suppliers as $supplier) {
+            DB::table('suppliers')->updateOrInsert(
+                ['id' => $supplier['id']],
+                array_merge($supplier, [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ])
+            );
+        }
     }
 }

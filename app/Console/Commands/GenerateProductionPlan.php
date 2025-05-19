@@ -25,8 +25,6 @@ class GenerateProductionPlan extends Command
             $this->warn("✅ Khong co ProductionOrder nao can lap ke hoach.");
             return 0;
         }
-
-        // Load lich may truoc 1 lan duy nhat
         $scheduleMap = MachineSchedule::where('end_time', '>', now())->get()->groupBy('machine_id');
 
         foreach ($orders as $order) {
@@ -117,7 +115,6 @@ class GenerateProductionPlan extends Command
             })
             ->value('unit_id');
         $unit = DB::table('units')->where('id', $unit_order)->first();
-        // ✅ Nếu là bao, quy đổi sang tấn
         if ($unit->name === 'Bao') {
             $this->line("⚖️ Quy đổi đơn vị: $totalQty bao → " . ($totalQty * 0.05) . " tấn");
             $totalQty = $totalQty * 0.05;
@@ -194,11 +191,18 @@ class GenerateProductionPlan extends Command
                 'date' => now(),
             ]);
 
+
+            // $Q=DB::table('inventories')->where('id', $targetId)->first()
+            // if($Q->isEmpty())
             // DB::table('inventories')->updateOrInsert(
             //     ['item_id' => $targetId],
             //     [
             //         'item_type' => $productType,
+
             //         'quantity' => DB::raw("quantity + $lotQty"),
+
+                    
+            //         'quantity' => DB::table('inventories')->where('id', $targetId)->first()->quantity + $lotQty,//DB::raw("quantity + $lotQty"),
             //         'unit_id' => null
             //     ]
             // );
@@ -213,8 +217,8 @@ class GenerateProductionPlan extends Command
 
             $startDate = clone $stepStart;
         }
-
         $this->line("📅 Ngay ket thuc du kien: " . $stepStart->format('Y-m-d H:i'));
+
     }
 
     private function isMachineBusyCached($machineId, $start, $durationMinutes, $schedulesByMachine)

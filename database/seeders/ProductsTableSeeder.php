@@ -13,11 +13,20 @@ class ProductsTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('products')->insert([
+            [
             'id' => 'PRO001',
             'name' => 'Xi măng bao PCB40',
             'description' => 'Xi măng đóng bao sau khi kiểm tra chất lượng và đóng gói',
             'created_at' => now(),
             'updated_at' => now(),
+            ],
+            [
+            'id' => 'PRO002',
+            'name' => 'Xi măng bao PCB30',
+            'description' => 'Sản phẩm xi măng đóng bao loại PCB30',
+            'created_at' => now(),
+            'updated_at' => now(),
+            ]
         ]);
     }
 }

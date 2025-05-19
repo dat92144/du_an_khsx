@@ -69,6 +69,14 @@
               <ClipboardCheck class="w-5 h-5" /> Kế hoạch SX
             </router-link>
           </li>
+          <li>
+          <router-link
+            to="/machine-monitor"
+            class="block p-3 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center gap-2"
+          >
+            <Activity class="w-5 h-5" /> Giám sát máy
+          </router-link>
+          </li>
         </ul>
       </nav>
     </aside>
@@ -84,7 +92,8 @@
     Boxes,
     Pin,
     Repeat,
-    Settings
+    Settings,
+    Activity
   } from 'lucide-vue-next';
 
   export default {
@@ -97,7 +106,8 @@
       Boxes,
       Pin,
       Repeat,
-      Settings
+      Settings,
+      Activity
     }
   };
   </script>

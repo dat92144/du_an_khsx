@@ -47,13 +47,11 @@ class GanttController extends Controller
 {
     $tasks = [];
 
-    // Lấy tất cả kế hoạch đã có product hoặc bán thành phẩm
     $allPlans = DB::table('production_plans')
         ->whereNotNull('product_id')
         ->orWhereNotNull('semi_finished_product_id')
         ->get();
 
-    // Gom theo production_order_id
     $grouped = $allPlans->groupBy('order_id');
 
     foreach ($grouped as $orderId => $plans) {
@@ -68,7 +66,7 @@ class GanttController extends Controller
             'id' => "order-$orderId",
             'text' => ($type === 'product' ? "ĐH-$orderId Sản phẩm " : "ĐH-$orderId BTP ") . $itemId,
             'start_date' => $start,
-            'duration' => max(1, Carbon::parse($start)->diffInMinutes($end) / 60),
+            'duration' => Carbon::parse($start)->diffInMinutes($end) / 60,
             'progress' => 0,
             'open' => true
         ];
@@ -79,10 +77,10 @@ class GanttController extends Controller
             $lotEnd = $lotPlans->max('end_time');
 
             $tasks[] = [
-                'id' => "lot-$orderId-$lot",
+                'id' => "lot-$orderId-$lot-$type-$itemId",
                 'text' => "Lô $lot",
                 'start_date' => $lotStart,
-                'duration' => max(1, Carbon::parse($lotStart)->diffInMinutes($lotEnd) / 60),
+                'duration' => Carbon::parse($lotStart)->diffInMinutes($lotEnd) / 60,
                 'parent' => "order-$orderId",
                 'progress' => 0,
                 'open' => false
@@ -101,8 +99,7 @@ class GanttController extends Controller
 {
     $productId = $request->query('product_id');
     $lot = $request->query('lot');
-    $type = $request->query('type', 'product'); // default = product
-
+    $type = $request->query('type', 'product');
     $plans = DB::table('production_plans')
         ->where('lot_number', $lot);
 
@@ -118,10 +115,10 @@ class GanttController extends Controller
 
     foreach ($plans as $plan) {
         $tasks[] = [
-            'id' => $plan->plan_id,
+            'id' => $plan->id,
             'text' => $plan->process_id . ' (' . $plan->machine_id . ')',
             'start_date' => $plan->start_time,
-            'duration' => max(1, Carbon::parse($plan->end_time)->diffInMinutes($plan->start_time) / 60),
+            'duration' =>  Carbon::parse($plan->start_time)->diffInMinutes($plan->end_time) / 60,
             'progress' => $plan->status === 'finished' ? 1 : 0,
             'open' => true
         ];
@@ -144,7 +141,6 @@ class GanttController extends Controller
         $machineStart = $machinePlans->min('start_time');
         $machineEnd = $machinePlans->max('end_time');
 
-        // Task cha: máy
         $tasks[] = [
             'id' => 'machine-' . $machineId,
             'text' => 'Máy ' . $machineId,
@@ -153,15 +149,12 @@ class GanttController extends Controller
             'progress' => 0,
             'open' => true
         ];
-
-        // Gom các kế hoạch theo production_order_id
         $byOrder = $machinePlans->groupBy('order_id');
 
         foreach ($byOrder as $orderId => $orderPlans) {
             $orderStart = $orderPlans->min('start_time');
             $orderEnd = $orderPlans->max('end_time');
 
-            // Task trung gian: đơn hàng
             $tasks[] = [
                 'id' => 'order-' . $machineId . '-' . $orderId,
                 'text' => "ĐH $orderId",
@@ -174,8 +167,8 @@ class GanttController extends Controller
 
             foreach ($orderPlans as $plan) {
                 $tasks[] = [
-                    'id' => 'plan-' . $plan->plan_id,
-                    'text' => "Lệnh {$plan->plan_id} ({$plan->process_id} - Lô {$plan->lot_number})",
+                    'id' => 'plan-' . $plan->id,
+                    'text' => "Lệnh {$plan->id} ({$plan->process_id} - Lô {$plan->lot_number})",
                     'start_date' => $plan->start_time,
                     'duration' => max(1, Carbon::parse($plan->start_time)->diffInMinutes($plan->end_time) / 60),
                     'parent' => 'order-' . $machineId . '-' . $orderId,

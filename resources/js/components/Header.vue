@@ -167,9 +167,9 @@
         try {
           await this.approveRequest({ id: this.selectedRequest.id, sendEmail });
           this.closeRequestModal();
-          alert("✅ Duyệt đề xuất thành công!");
+          alert("Duyệt đề xuất thành công!");
         } catch (error) {
-          console.error("❌ Lỗi khi duyệt đề xuất:", error);
+          console.error("Lỗi khi duyệt đề xuất:", error);
           alert("Lỗi khi duyệt đề xuất: " + (error.response?.data?.message || "Lỗi không xác định!"));
         }
       },

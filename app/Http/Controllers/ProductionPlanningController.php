@@ -106,14 +106,14 @@ class ProductionPlanningController extends Controller
                         $startDate = $endTime;
                     }
     
-                    $historyId = $this->generateId('production_histories', 'HIST');
-                    ProductionHistory::create([
-                        'id' => $historyId,
-                        'production_order_id' => $productionOrderId,
-                        'product_id' => $productId,
-                        'completed_quantity' => $lotQty,
-                        'date' => now(),
-                    ]);
+                    // $historyId = $this->generateId('production_histories', 'HIST');
+                    // ProductionHistory::create([
+                    //     'id' => $historyId,
+                    //     'production_order_id' => $productionOrderId,
+                    //     'product_id' => $productId,
+                    //     'completed_quantity' => $lotQty,
+                    //     'date' => now(),
+                    // ]);
     
                     // Cập nhật kho theo loại
                     if ($productType === 'semi_finished_product') {

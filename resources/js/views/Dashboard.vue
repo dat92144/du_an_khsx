@@ -3,15 +3,11 @@
     <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
       <BarChart class="w-6 h-6" /> Dashboard
     </h2>
-
-    <!-- 📊 Thống kê -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <DashboardCard title="Tổng Đơn Hàng" :value="stats.total_orders" :icon="icons.Package" />
       <DashboardCard title="Sản phẩm SX" :value="stats.total_products" :icon="icons.Cog" />
       <DashboardCard title="Nhà Cung Cấp" :value="stats.total_suppliers" :icon="icons.Factory" />
     </div>
-
-    <!-- 🎛️ Tùy chọn hiển thị Gantt -->
     <div class="mb-4">
       <label class="font-semibold mr-2">Hiển thị kế hoạch theo:</label>
       <select v-model="selectedMode" class="border px-3 py-2 rounded">
@@ -24,7 +20,6 @@
       </select>
     </div>
 
-    <!-- Gantt hiển thị theo chế độ -->
     <OrderGantt
       v-if="selectedMode === 'order'"
       :tasks="orderTasks"
@@ -141,7 +136,6 @@ export default {
     },
     restoreProductGantt() {
         this.$nextTick(() => {
-        // Gọi lại render của ProductGantt nếu cần
         const ganttComp = this.$refs.productGantt;
         if (ganttComp && ganttComp.renderGantt) {
             ganttComp.renderGantt();
@@ -149,13 +143,13 @@ export default {
         });
     },
     async loadDashboardData() {
-        await Promise.all([
+      await Promise.all([
         this.fetchDashboardStats(),
         this.fetchProductionPlans(),
         this.fetchOrderGantt(),
         this.fetchProductGantt(),
         this.fetchMachineGantt()
-        ]);
+      ]);
     }
   }
 };

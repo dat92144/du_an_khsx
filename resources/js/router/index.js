@@ -15,6 +15,11 @@ import Home from '../views/Home.vue';
 import Forbidden from '../views/Forbidden.vue';
 import Register from '../views/Register.vue';
 import Page from '../views/Page.vue';
+import MachineMonitor from '../views/MachineMonitor.vue';
+import ProductCostHistory from '../views/ProductCostHistory.vue';
+import ProductCostList from '../views/ProductCostList.vue';
+import ProductPriceList from '../views/ProductPriceList.vue';
+
 const routes = [
     // { path: '/', redirect: '/login' },
     // { path: '/login', component: Login },
@@ -29,14 +34,18 @@ const routes = [
         component: main,
         children: [
             { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true, role: 'Admin'} },
-            { path: '/suppliers', component: Suppliers, meta: { requiresAuth: true, role: 'admin' } },
+            { path: '/suppliers', component: Suppliers, meta: { requiresAuth: true, role: 'Admin' } },
             { path: '/materials', component: Materials, meta: { requiresAuth: true } },
-            { path: '/orders', component: OrderList, meta: { requiresAuth: true } },
-            { path: '/machines', component: Machines, meta: { requiresAuth: true } },
-            { path: '/processes', component: Processes, meta: { requiresAuth: true } },
-            { path: '/raw-materials', component: RawMaterials, meta: { requiresAuth: true } },
-            { path: '/products', component: ProductList, meta: { requiresAuth: true } },
-            { path: '/production-orders', component: ProductionOrders, meta: { requiresAuth: true } },
+            { path: '/orders', component: OrderList, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/machines', component: Machines, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/processes', component: Processes, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/raw-materials', component: RawMaterials, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/products', component: ProductList, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/production-orders', component: ProductionOrders, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/machine-monitor', component: MachineMonitor, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/product-costs', component: ProductCostList, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/product-cost-histories', component: ProductCostHistory, meta: { requiresAuth: true, role: 'Admin' } },
+            { path: '/product-prices', component: ProductPriceList, meta: { requiresAuth: true, role: 'Admin' } },
 
         ]
     }
@@ -50,22 +59,16 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const isAuth = store.getters['auth/isAuthenticated'];
     const userRole = store.getters['auth/userRole'];
-
-    // 1. Nếu route yêu cầu đăng nhập
     if (to.meta.requiresAuth) {
         if (!isAuth) {
-            // Nếu chưa đăng nhập → chuyển về login
             return next('/login');
         }
 
-        // 2. Nếu route yêu cầu role cụ thể
         if (to.meta.role && to.meta.role !== userRole) {
             console.warn(`❌ Truy cập bị chặn: cần quyền "${to.meta.role}", bạn là "${userRole}"`);
-            return next('/forbidden'); // hoặc redirect đến /forbidden nếu bạn có trang đó
+            return next('/forbidden'); 
         }
     }
-
-    // 3. Cho phép đi tiếp nếu không bị chặn
     next();
 });
 export default router;

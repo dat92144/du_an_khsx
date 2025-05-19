@@ -40,6 +40,9 @@ class DatabaseSeeder extends Seeder
             InventoryProductSeeder::class,
             MachineCapacitySeeder::class,
             RoutingBomSeeder::class,
+            ProductCostSeeder::class,
+            ProductCostHistorySeeder::class,
+            ProductPriceSeeder::class,
         ]);
     }
 }

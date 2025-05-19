@@ -12,7 +12,7 @@ use App\Models\BomItem;
 use App\Models\Spec;
 use Carbon\Carbon;
 
-class PurchaseSuggestionController extends Controller
+class PurchaseController extends Controller
 {
     public function run()
     {

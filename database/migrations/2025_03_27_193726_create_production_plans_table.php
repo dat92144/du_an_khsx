@@ -7,9 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up() {
         Schema::create('production_plans', function (Blueprint $table) {
-            $table->string('plan_id')->primary(); // ID kế hoạch
+            $table->id();
             $table->string('order_id'); // Đơn hàng liên quan
             $table->string('product_id'); // Sản phẩm cần sản xuất
+            $table->string('semi_finished_product_id')->nullable(); // ban Sản phẩm cần sản xuất
             $table->integer('lot_number'); // Số lô sản xuất
             $table->integer('lot_size'); // Số lượng sản xuất mỗi lô
             $table->integer('total_quantity'); // Tổng số lượng cần sản xuất

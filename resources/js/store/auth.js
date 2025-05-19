@@ -64,6 +64,7 @@ export default {
                 commit('SET_TOKEN', response.data.token);
                 commit('SET_USER', response.data.user);
                 commit('SET_ROLE', response.data.role);
+                axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;//dat beo them dong nay 
 
                 return response.data; // Quan trọng: trả về toàn bộ dữ liệu API
             } catch (error) {

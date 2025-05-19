@@ -53,6 +53,17 @@
                 <hr />
                 <h5 class="flex items-center gap-2"><SlidersHorizontal class="w-4 h-4" /> Danh sách Giá trị Thuộc tính</h5>
                 <SpecAttributes :productId="currentProduct.id" />
+              <hr />
+                <h5 class="flex items-center gap-2"><DollarSign class="w-4 h-4" /> Chi phí sản xuất</h5>
+                <ProductCostList :productId="currentProduct.id" />
+
+                <hr />
+                <h5 class="flex items-center gap-2"><History class="w-4 h-4" /> Lịch sử chi phí</h5>
+                <ProductCostHistoryList :productId="currentProduct.id" />
+
+                <hr />
+                <h5 class="flex items-center gap-2"><Tags class="w-4 h-4" /> Giá bán sản phẩm</h5>
+                <ProductPriceList :productId="currentProduct.id" />
               </div>
             </td>
           </tr>
@@ -94,6 +105,9 @@
   import BomList from '../components/BomList.vue';
   import SpecList from '../components/SpecList.vue';
   import SpecAttributes from '../components/SpecAttributes.vue';
+  import ProductCostList from '../views/ProductCostList.vue';
+import ProductCostHistoryList from '../views/ProductCostHistory.vue';
+import ProductPriceList from '../views/ProductPriceList.vue';
   import '@/assets/modal.css';
 
   import {
@@ -104,7 +118,10 @@
     Eye,
     Link2,
     Wrench,
-    SlidersHorizontal
+    SlidersHorizontal,
+    History,
+    Tags,
+    DollarSign
   } from 'lucide-vue-next';
 
   export default {
@@ -112,6 +129,9 @@
       BomList,
       SpecList,
       SpecAttributes,
+       ProductCostList,
+  ProductCostHistoryList,
+  ProductPriceList,
       Bike,
       Plus,
       Pencil,
@@ -119,7 +139,10 @@
       Eye,
       Link2,
       Wrench,
-      SlidersHorizontal
+      SlidersHorizontal,
+      History,
+  Tags,
+  DollarSign
     },
     data() {
       return {

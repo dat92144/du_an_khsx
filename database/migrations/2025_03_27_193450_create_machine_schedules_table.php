@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up() {
         Schema::create('machine_schedules', function (Blueprint $table) {
-            $table->string('id', 36)->primary();
+            $table->id();
             $table->string('machine_id', 36);
             $table->string('production_order_id', 36);
             $table->timestamp('start_time')->nullable();

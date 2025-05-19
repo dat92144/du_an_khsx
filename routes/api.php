@@ -30,7 +30,10 @@ use App\Http\Controllers\{
     ProductionOrderController,
     ProductionHistoryController,
     ProductionPlanningController,
-    GanttController
+    GanttController,
+    ProductCostController,
+    ProductCostHistoryController,
+    ProductPriceController
 };
 
 // Auth Routes
@@ -121,6 +124,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/gantt/product-lot', [GanttController::class, 'productWithLots']);
         Route::get('/gantt/lot-detail', [GanttController::class, 'getLotDetail']);
         Route::get('/gantt/machine', [GanttController::class, 'getMachineGantt']);
+
+        Route::apiResource('product-costs', ProductCostController::class);
+        Route::apiResource('product-cost-histories', ProductCostHistoryController::class)->only(['index', 'store']);
+        Route::apiResource('product-prices', ProductPriceController::class)->only(['index', 'store']);
 
     });
 });

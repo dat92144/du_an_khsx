@@ -43,8 +43,8 @@ export default {
     // Sự kiện click lô
     gantt.attachEvent("onTaskClick", async (id) => {
       if (id.startsWith("lot-")) {
-        const [_, productId, lot] = id.split("-");
-        await this.loadLotDetail(productId, lot);
+        const [_, orderId, lot, type,productId] = id.split("-");
+        await this.loadLotDetail(productId, lot, type);
       }
       return true;
     });
@@ -59,9 +59,9 @@ export default {
         gantt.parse({ data: this.tasks, links: this.links || [] });
     },
 
-    async loadLotDetail(productId, lot) {
+    async loadLotDetail(productId, lot, type) {
       try {
-        const res = await fetch(`/api/gantt/lot-detail?product_id=${productId}&lot=${lot}`, {
+        const res = await fetch(`/api/gantt/lot-detail?product_id=${productId}&lot=${lot}&type=${type}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
         });
         const data = await res.json();

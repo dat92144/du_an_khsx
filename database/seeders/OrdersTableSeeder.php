@@ -16,13 +16,13 @@ class OrdersTableSeeder extends Seeder
             [
                 'id' => 'o001', 'customer_id' => 'cus001',
                 'order_date' => now()->subDays(10), 'delivery_date' => now()->addDays(5),
-                'status' => 'confirmed',
+                'status' => 'pending',
                 'created_at' => now(), 'updated_at' => now(),
             ],
             [
                 'id' => 'o002', 'customer_id' => 'cus002',
                 'order_date' => now()->subDays(7), 'delivery_date' => now()->addDays(3),
-                'status' => 'confirmed',
+                'status' => 'pending',
                 'created_at' => now(), 'updated_at' => now(),
             ],
         ]);

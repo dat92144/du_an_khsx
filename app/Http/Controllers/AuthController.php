@@ -14,21 +14,20 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 class AuthController extends Controller
 {
-    // Đăng ký tài khoản
     public function register(Request $request)
     {
-        // $request->validate([
-        //     'username' => 'required|string|max:255',
-        //     'email' => 'required|string|email|max:255|unique:users',
-        //     'password' => 'required|string|min:6',
-        //     'verify_code' => 'required'
-        // ]);
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'verify_code' => 'required'
+        ]);
 
-        // $cachedCode = Cache::get('verify_code_' . $request->email);
+        $cachedCode = Cache::get('verify_code_' . $request->email);
 
-        // if ($cachedCode != $request->verify_code) {
-        //     return response()->json(['message' => 'Mã xác nhận không đúng'], 422);
-        // }
+        if ($cachedCode != $request->verify_code) {
+            return response()->json(['message' => 'Mã xác nhận không đúng'], 422);
+        }
 
         $user = User::create([
             'id' => (string) Str::uuid(),
@@ -36,7 +35,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-        // Cache::forget('verify_code_' . $request->email);
+        Cache::forget('verify_code_' . $request->email);
 
         return response()->json(['message' => 'Đăng ký thành công!'], 201);
     }
@@ -48,7 +47,7 @@ class AuthController extends Controller
         ]);
 
         $code = rand(100000, 999999);
-        Cache::put('verify_code_' . $request->email, $code, 600); // lưu 10 phút
+        Cache::put('verify_code_' . $request->email, $code, 600);
 
         Mail::raw("Mã xác nhận đăng ký của bạn là: $code", function ($message) use ($request) {
             $message->to($request->email)->subject('Mã xác nhận đăng ký');
@@ -56,7 +55,6 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Mã xác thực đã được gửi tới email!']);
     }
-    // Đăng nhập và tạo token
     public function login(Request $request)
     {
         $request->validate([
@@ -85,15 +83,12 @@ class AuthController extends Controller
         ]);
     }
 
-    // Đăng xuất (Xóa token)
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
-
-    // Lấy thông tin người dùng
     public function profile(Request $request)
     {
         return response()->json($request->user());

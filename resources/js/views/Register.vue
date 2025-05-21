@@ -113,6 +113,12 @@ const handleRegister = async () => {
     successMessage.value = 'Đăng ký thành công! Đang chuyển hướng...';
     setTimeout(() => router.push('/login'), 2000);
   } catch (err) {
+    const res = err.response?.data?.errors;
+    if (res?.email?.length) {
+        errorMessage.value = res.email[0]; // 👉 Hiển thị: "Email đã được sử dụng"
+    } else {
+        errorMessage.value = err.response?.data?.message || 'Đăng ký thất bại';
+    }
     errorMessage.value =
       err.response?.data?.message || 'Đăng ký không thành công. Vui lòng thử lại!';
   } finally {

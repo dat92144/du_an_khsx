@@ -18,23 +18,32 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
             'verify_code' => 'required'
+        ], [
+            'email.unique' => 'Email đã được sử dụng. Vui lòng chọn email khác.'
         ]);
 
         $cachedCode = Cache::get('verify_code_' . $request->email);
-
         if ($cachedCode != $request->verify_code) {
             return response()->json(['message' => 'Mã xác nhận không đúng'], 422);
         }
 
         $user = User::create([
-            'id' => (string) Str::uuid(),
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        $defaultRole = Role::where('id', 'cus')->first();
+        if ($defaultRole) {
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_id' => $defaultRole->id
+            ]);
+        }
+
         Cache::forget('verify_code_' . $request->email);
 
         return response()->json(['message' => 'Đăng ký thành công!'], 201);
@@ -70,17 +79,16 @@ class AuthController extends Controller
             ]);
         }
 
-        // Tạo token
         $token = $user->createToken('auth_token')->plainTextToken;
         $userroles = UserRole::where('user_id', $user->id)->get();
-        $roleIds = $userroles->pluck('role_id'); // Lấy tất cả role_id từ user_roles
-        $roles = Role::whereIn('id', $roleIds)->pluck('name'); // Lấy danh sách name của roles
-
+        $roleIds = $userroles->pluck('role_id');
+        $roles = Role::whereIn('id', $roleIds)->pluck('name');
         return response()->json([
             'user' => $user,
             'role' => $roles,
             'token' => $token
         ]);
+
     }
 
     public function logout(Request $request)

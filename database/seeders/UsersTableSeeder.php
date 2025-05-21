@@ -14,7 +14,6 @@ class UsersTableSeeder extends Seeder
     {
         DB::table('users')->insert([
             [
-                'id' => '1',
                 'username' => 'admin',
                 'email' => 'admin@example.com',
                 'password' => bcrypt('password'),
@@ -22,7 +21,6 @@ class UsersTableSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id' => '2',
                 'username' => 'employee1',
                 'email' => 'employee1@example.com',
                 'password' => bcrypt('password'),

@@ -18,6 +18,10 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $table = 'users';
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'id',
         'username',
@@ -33,12 +37,7 @@ class User extends Authenticatable
         return $this->roles()->pluck('name')->toArray(); // Đảm bảo trả về mảng tên role
     }
 
-    public function hasPermission($permissionName)
-    {
-        return $this->roles()->whereHas('permissions', function ($query) use ($permissionName) {
-            $query->where('name', $permissionName);
-        })->exists();
-    }
+
 
     /**
      * The attributes that should be hidden for serialization.

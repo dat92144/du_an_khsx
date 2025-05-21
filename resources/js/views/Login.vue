@@ -60,11 +60,14 @@
             return;
           }
 
-          if (response.role.includes('Admin')) {
-            router.push('/dashboard');
+          if (response.role && response.role.includes('Admin')) {
+            router.push('/internal');
+          } else if (!response.role || !response.role.length){
+            errorMessage.value = 'Tài khoản không có quyền truy cập hệ thống';
+            return;
           } else {
-            router.push('/page');
-          }
+            router.push('/');
+        }
         } catch (error) {
           errorMessage.value = 'Sai tài khoản hoặc mật khẩu!';
           console.error('❌ Lỗi khi đăng nhập:', error.response?.data || error);

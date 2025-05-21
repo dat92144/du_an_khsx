@@ -121,8 +121,17 @@ const actions = {
     } catch (err) {
       console.error("❌ Lỗi khi lấy production plans:", err);
     }
-  }
-
+  },
+  async createProductionOrder({ dispatch }, productionOrderId) {
+    try {
+      await axios.post(`/api/production-orders/approve/${productionOrderId}`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
+      });
+      await dispatch("fetchProductionOrders");
+    } catch (err) {
+      console.error("❌ Lỗi khi tạo lệnh sản xuất:", err);
+    }
+  } 
 };
 
 export default {

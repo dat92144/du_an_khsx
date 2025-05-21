@@ -19,7 +19,7 @@ class GenerateProductionPlan extends Command
     {
         $this->info("\n🔍 Dang tim cac ProductionOrders can lap ke hoach...");
 
-        $orders = ProductionOrder::where('producing_status', 'pending')->get();
+        $orders = ProductionOrder::where('producing_status', 'approved')->get();
 
         if ($orders->isEmpty()) {
             $this->warn("✅ Khong co ProductionOrder nao can lap ke hoach.");

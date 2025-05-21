@@ -140,7 +140,6 @@
       ...mapActions('products', ['fetchProducts', 'fetchSemiProducts']),
       ...mapActions('units', ['fetchUnits']),
 
-
       formatDate(dateStr) {
         return new Date(dateStr).toLocaleDateString();
       },

@@ -202,6 +202,50 @@ class OrderController extends Controller
         return response()->json(['message' => 'Đã xoá đơn hàng']);
     }
 
+    // public function produce($id)
+    // {
+    //     $order = Order::with('details')->findOrFail($id);
+
+    //     foreach ($order->details as $detail) {
+    //         $productId = $detail->product_id;
+    //         $semiId = $detail->semi_finished_product_id;
+
+    //         // Kiểm tra loại sản phẩm và tìm BOM chính xác
+    //         if (!empty($productId)) {
+    //             $bom = Bom::where('product_id', $productId)->first();
+    //         } elseif (!empty($semiId)) {
+    //             $bom = Bom::where('semi_finished_product_id', $semiId)->first();
+    //         } else {
+    //             return response()->json([
+    //                 'message' => 'Sản phẩm không có ID hợp lệ.'
+    //             ], 400);
+    //         }
+
+    //         if (!$bom) {
+    //             return response()->json([
+    //                 'message' => 'Không tìm thấy BOM cho sản phẩm: ' . ($productId ?? $semiId)
+    //             ], 400);
+    //         }
+
+    //         $po = ProductionOrder::create([
+    //             'id' => $this->generateProductionOrderId(),
+    //             'product_id' => $productId,
+    //             'semi_finished_product_id' => $semiId,
+    //             'order_id' => $order->id,
+    //             'order_quantity' => $detail->quantity_product,
+    //             'order_date' => $order->order_date,
+    //             'delivery_date' => $order->delivery_date,
+    //             'bom_id' => $bom->id,
+    //             'producing_status' => 'pending',
+    //         ]);
+
+    //         event(new ProductionOrderCreated($po));
+    //     }
+
+    //     $order->update(['status' => 'approved']);
+    //     return response()->json(['message' => 'Đã tạo kế hoạch sản xuất từ đơn hàng']);
+    // }
+
     public function produce($id)
     {
         $order = Order::with('details')->findOrFail($id);
@@ -209,22 +253,26 @@ class OrderController extends Controller
         foreach ($order->details as $detail) {
             $productId = $detail->product_id;
             $semiId = $detail->semi_finished_product_id;
+            $productType = $detail->product_type;
+            $quantity = $detail->quantity_product;
 
-            // Kiểm tra loại sản phẩm và tìm BOM chính xác
-            if (!empty($productId)) {
-                $bom = Bom::where('product_id', $productId)->first();
-            } elseif (!empty($semiId)) {
-                $bom = Bom::where('semi_finished_product_id', $semiId)->first();
-            } else {
-                return response()->json([
-                    'message' => 'Sản phẩm không có ID hợp lệ.'
-                ], 400);
-            }
+            $targetId = $productId ?? $semiId;
+            $bom = Bom::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)->first();
+            if (!$bom) continue;
 
-            if (!$bom) {
-                return response()->json([
-                    'message' => 'Không tìm thấy BOM cho sản phẩm: ' . ($productId ?? $semiId)
-                ], 400);
+            $stock = Inventory::where('item_id', $targetId)
+                ->where('item_type', $productType)
+                ->value('quantity') ?? 0;
+
+            $planned = DB::table('production_orders')
+                ->where('producing_status', '!=', 'completed')
+                ->where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)
+                ->sum('order_quantity');
+
+            $gap = max(0, $quantity - $stock - $planned);
+
+            if ($gap <= 0) {
+                continue; // Đủ hàng hoặc đã lên kế hoạch rồi
             }
 
             $po = ProductionOrder::create([
@@ -232,7 +280,7 @@ class OrderController extends Controller
                 'product_id' => $productId,
                 'semi_finished_product_id' => $semiId,
                 'order_id' => $order->id,
-                'order_quantity' => $detail->quantity_product,
+                'order_quantity' => $gap,
                 'order_date' => $order->order_date,
                 'delivery_date' => $order->delivery_date,
                 'bom_id' => $bom->id,
@@ -245,5 +293,6 @@ class OrderController extends Controller
         $order->update(['status' => 'approved']);
         return response()->json(['message' => 'Đã tạo kế hoạch sản xuất từ đơn hàng']);
     }
+
 
 }

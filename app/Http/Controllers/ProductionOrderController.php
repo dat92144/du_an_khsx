@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Artisan;
 class ProductionOrderController extends Controller {
     public function index()
     {
@@ -99,4 +99,18 @@ class ProductionOrderController extends Controller {
         $productionOrder->delete();
         return response()->json(['message' => 'Production Order deleted successfully'], 200);
     }
+    public function approveProductionOrder(Request $request, $productionOrderId)
+    {
+        $po = ProductionOrder::find($productionOrderId);
+
+        if (!$po) {
+            return response()->json(['message' => 'Không tìm thấy lệnh sản xuất'], 404);
+        }
+        $po->producing_status = 'approved';
+        $po->save();
+        Artisan::call('app:generate-production-plan');
+
+        return response()->json(['message' => '✅ Đã duyệt lệnh sản xuất và bắt đầu xử lý kế hoạch']);
+    }
+
 }

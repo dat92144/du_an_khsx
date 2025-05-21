@@ -6,7 +6,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Facades\Http;
 
 class PurchaseRequestController extends Controller
 {
@@ -86,6 +86,14 @@ class PurchaseRequestController extends Controller
             return response()->json(['message' => 'Thông báo đã được xóa!']);
         }
         return response()->json(['message' => 'Không thể xóa đơn hàng chưa xử lý!'], 400);
+    }
+    protected function notifySocketServer($data)
+    {
+        try {
+            Http::post("http://localhost:3001/notify", $data);
+        } catch (\Exception $e) {
+            logger("Không thể gửi tới WebSocket server: " . $e->getMessage());
+        }
     }
 
 }

@@ -13,18 +13,29 @@ use App\Models\Process;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequests;
 use App\Models\Spec;
+use Illuminate\Support\Facades\Http;
 
 class AutoPurchaseByProductionPlan extends Command
 {
     protected $signature = 'purchase:auto-production';
     protected $description = 'Tu dong de xuat mua hang';
-
+    protected function notifyNewPurchaseRequest($request)
+    {
+        try {
+            Http::post("http://localhost:3001/notify", [
+                'type' => 'created',
+                'request' => $request
+            ]);
+        } catch (\Exception $e) {
+            $this->error("❌ Không thể gửi WebSocket event: " . $e->getMessage());
+        }
+    }
     public function handle()
     {
         DB::beginTransaction();
 
         try {
-            $plannedOrders = ProductionOrder::whereIn('producing_status', ['planned', 'approved', 'pending'])
+            $plannedOrders = ProductionOrder::whereIn('producing_status', ['pending'])
                 ->whereNotNull('order_date')
                 ->orderBy('order_date', 'asc')
                 ->get();
@@ -145,7 +156,7 @@ class AutoPurchaseByProductionPlan extends Command
             }
 
             try {
-                PurchaseRequests::create([
+                $request = PurchaseRequests::create([
                     'supplier_id' => $bestSupplier->supplier_id,
                     'material_id' => $itemId,
                     'type' => $itemType,
@@ -156,7 +167,7 @@ class AutoPurchaseByProductionPlan extends Command
                     'expected_delivery_date' => Carbon::now()->addDays($bestSupplier->delivery_time ?? 3)->toDateTimeString(),
                     'status' => 'pending',
                 ]);
-
+                $this->notifyNewPurchaseRequest($request);
                 $this->info("📥 Đề xuất mua $itemId ($itemType) - thiếu $shortage cái - từ nhà cung cấp {$bestSupplier->supplier_id}");
             } catch (\Exception $e) {
                 $this->error("❌ Lỗi khi tạo đề xuất mua $itemId: " . $e->getMessage());
@@ -195,7 +206,7 @@ class AutoPurchaseByProductionPlan extends Command
 
             if ($bestSupplier) {
                 $this->info("$bestSupplier");
-                PurchaseRequests::create([
+                $request = PurchaseRequests::create([
                     'supplier_id' => $bestSupplier->supplier_id,
                     'material_id' => $materialId,
                     'type' => 'material',
@@ -206,7 +217,7 @@ class AutoPurchaseByProductionPlan extends Command
                     'expected_delivery_date' => Carbon::now()->addDays($DayOfStockOut),
                     'status' => 'pending'
                 ]);
-
+                $this->notifyNewPurchaseRequest($request);
                 $this->info("Đặt mua nguyên vật liệu $materialId, số lượng $actualShortage, giao hàng trước ngày: " . Carbon::now()->addDays($DayOfStockOut)->format('d-m-Y'));
             } else {
                 $this->warn("Không tìm thấy nhà cung cấp phù hợp cho nguyên vật liệu $materialId");
@@ -251,7 +262,7 @@ class AutoPurchaseByProductionPlan extends Command
                     ->first();
 
             if ($bestSupplier) {
-                PurchaseRequests::create([
+                $request = PurchaseRequests::create([
                     'supplier_id' => $bestSupplier->supplier_id,
                     'material_id' => $materialId,
                     'type' => 'semi_finished_product',
@@ -262,7 +273,7 @@ class AutoPurchaseByProductionPlan extends Command
                     'expected_delivery_date' => Carbon::now()->addDays($DayOfStockOut),
                     'status' => 'pending'
                 ]);
-
+                $this->notifyNewPurchaseRequest($request);
                 $this->info("Đặt mua bán thành phẩm $materialId, số lượng $requiredQuantity, giao hàng trước ngày: $DayOfStockOut");
             } else {
                 $this->warn("Không thể mua bán thành phẩm $materialId từ nhà cung cấp.");

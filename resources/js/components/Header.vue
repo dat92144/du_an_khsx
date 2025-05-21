@@ -100,6 +100,7 @@
   </template>
 
   <script>
+  import socket from "../socket";
   import {
     Bell,
     User,
@@ -133,8 +134,22 @@
       ...mapState("notifications", ["notificationCount", "purchaseRequests"])
     },
     mounted() {
+      socket.on("purchase-request-created", (newRequest) => {
+        // Cập nhật Vuex:
+        this.$store.state.notifications.purchaseRequests.unshift(newRequest);
+        this.$store.state.notifications.notificationCount += 1;
+
+        // Tùy chọn: Hiển thị thông báo
+        this.$toast?.info(`📦 Có đề xuất mới: ${newRequest.material_id} từ ${newRequest.supplier?.name || "nhà cung cấp"}`);
+      });
+
+      // Dự phòng
       this.fetchNotifications();
-      setInterval(this.fetchNotifications, 60000);
+      //setInterval(this.fetchNotifications, 60000);
+      
+    },
+    beforeUnmount() {
+      socket.off("purchase-request-created");
     },
     methods: {
       ...mapActions("notifications", ["fetchNotifications", "markAsRead", "approveRequest", "rejectRequest", "deleteNotification"]),

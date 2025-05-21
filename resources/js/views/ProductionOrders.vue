@@ -29,6 +29,9 @@
               <button class="btn btn-sm btn-info d-flex align-items-center gap-1" @click="toggleDetail(order.id)">
                 <Eye class="w-4 h-4" /> Xem chi tiết
               </button>
+              <button class="btn btn-sm btn-success d-flex align-items-center gap-1" @click="createOrder(order.id)">
+                <PackageCheck class="w-4 h-4" /> Tạo lệnh
+              </button>
             </td>
           </tr>
           <tr v-if="selectedOrderId === order.id">
@@ -62,7 +65,7 @@ export default {
     ...mapState('productionOrders', ['productionOrders'])
   },
   methods: {
-    ...mapActions('productionOrders', ['fetchProductionOrders']),
+    ...mapActions('productionOrders', ['fetchProductionOrders', 'createProductionOrder']),
     formatDate(dateStr) {
       if (!dateStr) return 'Không xác định';
       const date = new Date(dateStr);
@@ -70,6 +73,11 @@ export default {
     },
     toggleDetail(orderId) {
       this.selectedOrderId = this.selectedOrderId === orderId ? null : orderId;
+    },
+    createOrder(id) {
+      if (confirm('Bạn có chắc muốn tạo lệnh sản xuất?')) {
+        this.createProductionOrder(id);
+      }
     }
   },
   mounted() {

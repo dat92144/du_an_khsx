@@ -116,6 +116,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/production-planning', [ProductionPlanningController::class, 'autoPlan']);
         Route::get('/production-plans', [ProductionPlanningController::class, 'getPlans']);
         Route::get('/production-orders/{orderId}/plans', [ProductionPlanningController::class, 'getPlansByOrder']);
+        Route::post('/production-orders/approve/{id}', [ProductionOrderController::class, 'approveProductionOrder']);
+
 
         // MRP (nếu cần)
         // Route::get('/mrp', [PurchaseController::class, 'caculateMRP']);

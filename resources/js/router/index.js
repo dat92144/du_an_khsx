@@ -26,6 +26,7 @@ const routes = [
     {
         path: '/internal',
         component: main,
+        meta: { requiresAuth: true, role: 'Admin' },
         beforeEnter: (to, from, next) => {
             const isAuth = store.getters['auth/isAuthenticated'];
             const userRole = store.getters['auth/userRole'];

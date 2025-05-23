@@ -1,10 +1,20 @@
 <template>
-  <div ref="gantt" style="width: 100%; height: 600px;"></div>
+  <div>
+    <div class="flex justify-end mb-2">
+      <button @click="exportToExcel" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+        📊 Xuất Excel
+      </button>
+    </div>
+    <div ref="gantt" style="width: 100%; height: 600px;"></div>
+  </div>
 </template>
 
+
 <script>
+import * as XLSX from "xlsx";
 export default {
   name: "ProductGantt",
+  emits: ["show-lot-gantt"],
   props: ["tasks", "links"],
   mounted() {
     const gantt = window.gantt;
@@ -72,7 +82,27 @@ export default {
       } catch (err) {
         console.error("Lỗi khi lấy chi tiết lô:", err);
       }
+    },
+
+    exportToExcel() {
+      const gantt = window.gantt;
+      const data = gantt.serialize().data;
+
+      const worksheetData = data.map(task => ({
+        "ID": task.id,
+        "Tên nhiệm vụ": task.text,
+        "Bắt đầu": task.start_date,
+        "Thời lượng (giờ)": task.duration,
+        "Tiến độ (%)": Math.round((task.progress || 0) * 100),
+        "Gantt cha": task.parent || ""
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tiến độ sản xuất");
+
+      XLSX.writeFile(workbook, "bao-cao-tien-do.xlsx");
     }
-  }
+   }
 };
 </script>

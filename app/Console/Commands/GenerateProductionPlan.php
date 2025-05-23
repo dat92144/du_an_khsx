@@ -88,49 +88,77 @@ class GenerateProductionPlan extends Command
     private function generatePlanForOrder($order, $scheduleMap)
     {
         $targetId = $order->product_id ?? $order->semi_finished_product_id;
-        if (!empty($order->product_id)) {
-            $productType = 'product';
-        } else {
-            $productType = 'semi_finished_product';
-        }
-        $this->info("🔍 product_id = {$order->product_id} | semi = {$order->semi_finished_product_id} | type = $productType");
+        $productType = $order->product_id ? 'product' : 'semi_finished_product';
+
         $specs = Spec::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)
             ->orderBy('process_id')
             ->get();
 
         if ($specs->isEmpty()) {
-            throw new \Exception("Khong tim thay quy trinh san xuat (spec)");
+            throw new \Exception("❌ Không tìm thấy quy trình sản xuất cho {$productType}: $targetId");
         }
 
         $lotSize = $specs->first()->lot_size ?? 1;
         $totalQty = $order->order_quantity;
+
+        // Quy đổi đơn vị nếu là "Bao"
         $unit_order = DB::table('order_details')
             ->where('order_id', $order->order_id)
-            ->where(function ($query) use ($order) {
-                if ($order->product_id) {
-                    $query->where('product_id', $order->product_id);
-                } else {
-                    $query->where('semi_finished_product_id', $order->semi_finished_product_id);
-                }
+            ->where(function ($q) use ($order) {
+                $order->product_id
+                    ? $q->where('product_id', $order->product_id)
+                    : $q->where('semi_finished_product_id', $order->semi_finished_product_id);
             })
             ->value('unit_id');
+
         $unit = DB::table('units')->where('id', $unit_order)->first();
-        if ($unit->name === 'Bao') {
-            $this->line("⚖️ Quy đổi đơn vị: $totalQty bao → " . ($totalQty * 0.05) . " tấn");
-            $totalQty = $totalQty * 0.05;
+        if ($unit && $unit->name === 'Bao') {
+            $this->line("⚖️ Quy đổi $totalQty bao → " . ($totalQty * 0.05) . " tấn");
+            $totalQty *= 0.05;
         }
 
+        // Kiểm tra nguyên vật liệu có đủ không (tính cả hàng đang về)
+        $bomItems = BomItem::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)->get();
+        $materialOk = true;
+
+        foreach ($bomItems as $item) {
+            $requiredTotal = $item->quantity_input * $totalQty;
+
+            $stock = DB::table('inventory_materials')
+                ->where('material_id', $item->input_material_id)
+                ->value('quantity') ?? 0;
+
+            $incoming = DB::table('purchase_orders')
+                ->where('material_id', $item->input_material_id)
+                ->where('status', 'ordered')
+                ->sum('quantity');
+
+            $available = $stock + $incoming;
+
+            if ($available < $requiredTotal) {
+                $this->warn("❌ Không đủ nguyên liệu {$item->input_material_id}: cần $requiredTotal, có $available");
+                $materialOk = false;
+            }
+        }
+
+        if (!$materialOk) {
+            throw new \Exception("⛔ Không đủ nguyên vật liệu để lập kế hoạch cho đơn {$order->id}");
+        }
+
+        // Tiến hành lập kế hoạch
         $numLots = ceil($totalQty / $lotSize);
         $now = now();
         $startDate = $now->hour < 8 ? $now->copy()->setTime(8, 0) : $now->copy()->addDay()->setTime(8, 0);
+        $this->line("📦 Tổng số lô: $numLots | Kích cỡ lô: $lotSize");
 
-        $this->line("📦 Tong so lo: $numLots | Kich co moi lo: $lotSize");
+        $lastEndTime = null;
         $loggedMachines = [];
+
         for ($lot = 1; $lot <= $numLots; $lot++) {
             $lotQty = ($lot == $numLots) ? $totalQty - $lotSize * ($numLots - 1) : $lotSize;
             $stepStart = clone $startDate;
 
-            $this->line("➞️  Lo $lot/$numLots (" . round($lot * 100 / $numLots) . "%) | So luong: $lotQty");
+            $this->line("➞️ Lô $lot/$numLots | Số lượng: $lotQty");
 
             foreach ($specs as $step) {
                 $machineId = $step->machine_id;
@@ -142,21 +170,21 @@ class GenerateProductionPlan extends Command
                 while ($this->isMachineBusyCached($machineId, $stepStart, $durationMinutes, $scheduleMap)) {
                     $logKey = $machineId . '|' . $stepStart->toDateString();
                     if (!isset($loggedMachines[$logKey])) {
-                        $this->line("⏳ May $machineId dang ban vao " . $stepStart->toDateTimeString() . ", thu lai ngay mai...");
+                        $this->line("⏳ Máy $machineId đang bận vào " . $stepStart->toDateTimeString() . ", thử lại ngày mai...");
                         $loggedMachines[$logKey] = true;
                     }
                     $stepStart->addDay()->setTime(8, 0);
                     $waited++;
                     if ($waited > $maxWaitDays) {
-                        throw new \Exception("⛔ May {$machineId} ban suot $maxWaitDays ngay, khong the lap ke hoach lo {$lot}.");
+                        throw new \Exception("⛔ Máy {$machineId} bận suốt $maxWaitDays ngày, không thể lập kế hoạch.");
                     }
                 }
 
                 $startTime = clone $stepStart;
                 $endTime = (clone $startTime)->addMinutes($durationMinutes);
+                $lastEndTime = $endTime;
 
                 MachineSchedule::create([
-                    //'id' => $this->generateIdFast('machine_schedules', 'MS'),
                     'machine_id' => $machineId,
                     'production_order_id' => $order->id,
                     'start_time' => $startTime,
@@ -165,7 +193,6 @@ class GenerateProductionPlan extends Command
                 ]);
 
                 ProductionPlan::create([
-                    //'plan_id' => $this->generateIdFast('production_plans', 'PLAN', 'plan_id'),
                     'order_id' => $order->order_id,
                     'product_id' => $productType === 'product' ? $targetId : null,
                     'semi_finished_product_id' => $productType === 'semi_finished_product' ? $targetId : null,
@@ -183,31 +210,7 @@ class GenerateProductionPlan extends Command
                 $stepStart = clone $endTime;
             }
 
-            ProductionHistory::create([
-                //'id' => $this->generateIdFast('production_histories', 'HIST'),
-                'production_order_id' => $order->id,
-                'product_id' => $order->product_id,
-                'completed_quantity' => $lotQty,
-                'date' => now(),
-            ]);
-
-
-            // $Q=DB::table('inventories')->where('id', $targetId)->first()
-            // if($Q->isEmpty())
-            // DB::table('inventories')->updateOrInsert(
-            //     ['item_id' => $targetId],
-            //     [
-            //         'item_type' => $productType,
-
-            //         'quantity' => DB::raw("quantity + $lotQty"),
-
-                    
-            //         'quantity' => DB::table('inventories')->where('id', $targetId)->first()->quantity + $lotQty,//DB::raw("quantity + $lotQty"),
-            //         'unit_id' => null
-            //     ]
-            // );
-
-            $bomItems = BomItem::where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)->get();
+            // Trừ nguyên vật liệu
             foreach ($bomItems as $item) {
                 $used = $item->quantity_input * $lotQty;
                 DB::table('inventory_materials')
@@ -215,11 +218,24 @@ class GenerateProductionPlan extends Command
                     ->decrement('quantity', $used);
             }
 
+            ProductionHistory::create([
+                'production_order_id' => $order->id,
+                'product_id' => $order->product_id,
+                'completed_quantity' => $lotQty,
+                'date' => now(),
+            ]);
+
             $startDate = clone $stepStart;
         }
-        $this->line("📅 Ngay ket thuc du kien: " . $stepStart->format('Y-m-d H:i'));
 
+        // ⚠️ Kiểm tra deadline có trễ không
+        if ($lastEndTime && Carbon::parse($order->delivery_date)->lt($lastEndTime)) {
+            $this->warn("🚨 Cảnh báo: đơn {$order->id} có thể trễ giao hàng! Kết thúc dự kiến: " . $lastEndTime->format('Y-m-d H:i'));
+        }
+
+        $this->line("✅ Kế hoạch kết thúc vào: " . $lastEndTime?->format('Y-m-d H:i'));
     }
+
 
     private function isMachineBusyCached($machineId, $start, $durationMinutes, $schedulesByMachine)
     {

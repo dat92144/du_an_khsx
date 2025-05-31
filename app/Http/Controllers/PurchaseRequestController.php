@@ -7,6 +7,7 @@ use App\Models\PurchaseRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use App\Models\SupplierPrice;
 
 class PurchaseRequestController extends Controller
 {
@@ -45,11 +46,15 @@ class PurchaseRequestController extends Controller
         $purchaseRequest = PurchaseRequests::where('id', $id)->with('supplier','material')->first();
         $existingOrder = PurchaseOrder::where('supplier_id', $purchaseRequest->supplier_id)
         ->where('material_id', $purchaseRequest->material_id)
+        ->where('quantity', $purchaseRequest->quantity)
         ->first();
 
-        if ($existingOrder) { 
+        if ($existingOrder) {
             return response()->json(['message' => 'Đơn hàng đã tồn tại!'], 400);
         }
+        $deliveryTime = SupplierPrice::where('supplier_id', $purchaseRequest->supplier_id)
+                ->where('material_id', $purchaseRequest->material_id)
+                ->value('delivery_time') ?? 3;
         $order = PurchaseOrder::create([
             'supplier_id' => $purchaseRequest->supplier_id,
             'material_id' => $purchaseRequest->material_id,
@@ -59,7 +64,8 @@ class PurchaseRequestController extends Controller
             'price_per_unit' => $purchaseRequest->price_per_unit,
             'total_price' =>$purchaseRequest->total_price,
             'order_date' => now(),
-            'expected_delivery_date' => now()->addDays($purchaseRequest->delivery_time),
+            //'expected_delivery_date' => now()->addDays($purchaseRequest->delivery_time),
+            'expected_delivery_date' => now()->addDays($deliveryTime),
             'status' => 'ordered',
         ]);
 

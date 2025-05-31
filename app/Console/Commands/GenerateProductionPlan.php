@@ -122,22 +122,29 @@ class GenerateProductionPlan extends Command
         $materialOk = true;
 
         foreach ($bomItems as $item) {
-            $requiredTotal = $item->quantity_input * $totalQty;
+            $previousProcess = BomItem::where('output_id', $item->input_material_id)->first();
+            if ($previousProcess) {
+                $this->info("Bán thành phẩm $item->input_material_id có thể sản xuất trong công đoạn {$previousProcess->process_id}.");
+                continue;
+            }else{
+                $requiredTotal = $item->quantity_input * $totalQty;
 
-            $stock = DB::table('inventory_materials')
-                ->where('material_id', $item->input_material_id)
-                ->value('quantity') ?? 0;
+                $stock = DB::table('inventories')
+                    ->where('item_id', $item->input_material_id)
+                    ->where('item_type', $item->input_material_type)
+                    ->value('quantity') ?? 0;
 
-            $incoming = DB::table('purchase_orders')
-                ->where('material_id', $item->input_material_id)
-                ->where('status', 'ordered')
-                ->sum('quantity');
+                $incoming = DB::table('purchase_orders')
+                    ->where('material_id', $item->input_material_id)
+                    ->where('status', 'ordered')
+                    ->sum('quantity');
 
-            $available = $stock + $incoming;
+                $available = $stock + $incoming;
 
-            if ($available < $requiredTotal) {
-                $this->warn("❌ Không đủ nguyên liệu {$item->input_material_id}: cần $requiredTotal, có $available");
-                $materialOk = false;
+                if ($available < $requiredTotal) {
+                    $this->warn("❌ Không đủ nguyên liệu {$item->input_material_id}: cần $requiredTotal, có $available");
+                    $materialOk = false;
+                }
             }
         }
 
@@ -211,19 +218,19 @@ class GenerateProductionPlan extends Command
             }
 
             // Trừ nguyên vật liệu
-            foreach ($bomItems as $item) {
-                $used = $item->quantity_input * $lotQty;
-                DB::table('inventory_materials')
-                    ->where('material_id', $item->input_material_id)
-                    ->decrement('quantity', $used);
-            }
+            // foreach ($bomItems as $item) {
+            //     $used = $item->quantity_input * $lotQty;
+            //     DB::table('inventory_materials')
+            //         ->where('material_id', $item->input_material_id)
+            //         ->decrement('quantity', $used);
+            // }
 
-            ProductionHistory::create([
-                'production_order_id' => $order->id,
-                'product_id' => $order->product_id,
-                'completed_quantity' => $lotQty,
-                'date' => now(),
-            ]);
+            // ProductionHistory::create([
+            //     'production_order_id' => $order->id,
+            //     'product_id' => $order->product_id,
+            //     'completed_quantity' => $lotQty,
+            //     'date' => now(),
+            // ]);
 
             $startDate = clone $stepStart;
         }

@@ -22,11 +22,31 @@ const dbConfig = {
 
 let machineStates = {};
 
+// ✅ Cập nhật tiến độ toàn bộ đơn hàng mỗi 10s
+async function emitAllOrderProgress() {
+  const conn = await mysql.createConnection(dbConfig);
+  const [orders] = await conn.execute(`
+    SELECT DISTINCT order_id, product_id
+    FROM production_plans
+    WHERE order_id IS NOT NULL AND product_id IS NOT NULL
+  `);
+  await conn.end();
+
+  for (const { order_id, product_id } of orders) {
+    const progress = await getOrderProgress(order_id, product_id);
+    io.emit('order-progress', {
+      order_id,
+      product_id,
+      progress
+    });
+  }
+}
+
 async function getNextPlannedPlan() {
   const conn = await mysql.createConnection(dbConfig);
   const [rows] = await conn.execute(`
-    SELECT 
-      pp.*, ms.machine_id, ms.production_order_id, 
+    SELECT
+      pp.*, ms.machine_id, ms.production_order_id,
       p.name AS product_name, sp.name AS process_name
     FROM production_plans pp
     JOIN machine_schedules ms ON ms.machine_id = pp.machine_id
@@ -42,7 +62,6 @@ async function getNextPlannedPlan() {
 
 async function updateHistory(plan, quantity) {
   const conn = await mysql.createConnection(dbConfig);
-
   const [existing] = await conn.execute(`
     SELECT * FROM production_histories
     WHERE production_order_id = ? AND product_id = ? AND process_id = ?
@@ -65,16 +84,19 @@ async function updateHistory(plan, quantity) {
 
 async function markPlanCompleted(plan) {
   const conn = await mysql.createConnection(dbConfig);
-
-  // 1. Cập nhật trạng thái plan
   await conn.execute(`UPDATE production_plans SET status = 'completed' WHERE id = ?`, [plan.id]);
 
-  // 2. Kiểm tra xem tất cả các plan trong order_id & product_id đã hoàn thành hay chưa
+  const orderProgress = await getOrderProgress(plan.order_id, plan.product_id);
+  io.emit('order-progress', {
+    order_id: plan.order_id,
+    product_id: plan.product_id,
+    progress: orderProgress
+  });
+
   const [allPlans] = await conn.execute(`
     SELECT COUNT(*) AS total FROM production_plans
     WHERE order_id = ? AND product_id = ?
   `, [plan.order_id, plan.product_id]);
-
   const [completedPlans] = await conn.execute(`
     SELECT COUNT(*) AS completed FROM production_plans
     WHERE order_id = ? AND product_id = ? AND status = 'completed'
@@ -84,16 +106,14 @@ async function markPlanCompleted(plan) {
   const completed = completedPlans[0].completed;
 
   if (total !== completed) {
-    console.log(`⚠️ Chưa hoàn thành toàn bộ lệnh sản xuất cho order_id = ${plan.order_id}, product_id = ${plan.product_id}`);
+    console.log(`⚠️ Chưa hoàn thành toàn bộ lệnh sản xuất cho order_id = ${plan.order_id}`);
     await conn.end();
     return;
   }
 
-  // 3. Xác định loại sản phẩm và id
   const itemType = plan.product_id ? 'product' : 'semi_finished_product';
   const itemId = plan.product_id ?? plan.semi_finished_product_id;
 
-  // 4. Lấy unit_id từ order_details
   const [orderDetailRows] = await conn.execute(`
     SELECT unit_id FROM order_details
     WHERE order_id = ? AND product_id = ?
@@ -101,23 +121,37 @@ async function markPlanCompleted(plan) {
   `, [plan.order_id, plan.product_id]);
 
   const unitId = orderDetailRows.length ? orderDetailRows[0].unit_id : null;
-
   if (!unitId) {
-    console.error(`❌ Không tìm thấy unit_id cho order_id = ${plan.order_id}, product_id = ${plan.product_id}`);
+    console.error(`❌ Không tìm thấy unit_id`);
     await conn.end();
     return;
   }
 
-  // 5. Cập nhật tồn kho (chỉ khi hoàn thành toàn bộ)
   await conn.execute(`
     INSERT INTO inventories (item_id, item_type, quantity, unit_id, last_updated)
     VALUES (?, ?, ?, ?, NOW())
     ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity), last_updated = NOW()
   `, [itemId, itemType, plan.total_quantity, unitId]);
 
-  console.log(`✅ Đã cập nhật tồn kho cho product_id = ${plan.product_id}, order_id = ${plan.order_id}`);
-
+  console.log(`✅ Cập nhật tồn kho cho order_id = ${plan.order_id}`);
   await conn.end();
+}
+
+async function getOrderProgress(orderId, productId) {
+  const conn = await mysql.createConnection(dbConfig);
+  const [allPlans] = await conn.execute(`
+    SELECT COUNT(*) AS total FROM production_plans
+    WHERE order_id = ? AND product_id = ?
+  `, [orderId, productId]);
+  const [completedPlans] = await conn.execute(`
+    SELECT COUNT(*) AS completed FROM production_plans
+    WHERE order_id = ? AND product_id = ? AND status = 'completed'
+  `, [orderId, productId]);
+  await conn.end();
+
+  const total = allPlans[0].total;
+  const completed = completedPlans[0].completed;
+  return total === 0 ? 0 : completed / total;
 }
 
 function sleep(ms) {
@@ -149,7 +183,6 @@ async function simulateProduction(plan) {
     };
 
     io.emit('machine-data', payload);
-    console.log('✅ Đang gửi dữ liệu máy:', payload);
     await updateHistory(plan, produced);
     await sleep(intervalMs);
   }
@@ -160,6 +193,10 @@ async function simulateProduction(plan) {
 io.on('connection', async socket => {
   console.log(`📡 Client connected: ${socket.id}`);
 
+  // Gửi định kỳ tiến độ đơn hàng (dù client không tương tác)
+  const interval = setInterval(() => emitAllOrderProgress(), 10000);
+
+  // Nếu chưa chạy mô phỏng thì bắt đầu
   if (!machineStates['running']) {
     machineStates['running'] = true;
     while (true) {
@@ -175,6 +212,7 @@ io.on('connection', async socket => {
 
   socket.on('disconnect', () => {
     console.log(`❌ Client disconnected: ${socket.id}`);
+    clearInterval(interval);
   });
 });
 

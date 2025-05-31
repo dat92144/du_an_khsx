@@ -116,38 +116,43 @@ export default {
     },
 
     filteredTasks() {
-      const keyword = this.searchKeyword.toLowerCase();
-      const tasks = this.getCurrentTasks;
+        const keyword = this.searchKeyword.toLowerCase();
+        const tasks = this.getCurrentTasks;
 
-      if (!this.searchKeyword) return tasks;
+        if (!this.searchKeyword) return tasks;
 
-      const matchedIds = new Set();
-      const result = [];
+        const matchedIds = new Set();
+        const taskMap = {};
 
-      for (const task of tasks) {
-        const text = task.text?.toLowerCase() || "";
-        const startDate = (task.start_date ? String(task.start_date) : "").toLowerCase();
-        const duration = String(task.duration || "");
-        const progress = String(Math.round((task.progress || 0) * 100));
-
-        const match =
-          text.includes(keyword) ||
-          startDate.includes(keyword) ||
-          duration.includes(keyword) ||
-          progress.includes(keyword);
-
-        if (match) {
-          matchedIds.add(task.id);
-          if (task.parent) matchedIds.add(task.parent);
+        // Lưu vào map để dễ truy cập
+        for (const task of tasks) {
+            taskMap[task.id] = task;
         }
-      }
 
-      for (const task of tasks) {
-        if (matchedIds.has(task.id)) result.push(task);
-      }
+        // Xác định task phù hợp
+        for (const task of tasks) {
+            const text = task.text?.toLowerCase() || "";
+            const startDate = (task.start_date ? String(task.start_date) : "").toLowerCase();
+            const duration = String(task.duration || "");
+            const progress = String(Math.round((task.progress || 0) * 100));
 
-      return [...result];
+            const match =
+            text.includes(keyword) ||
+            startDate.includes(keyword) ||
+            duration.includes(keyword) ||
+            progress.includes(keyword);
+
+            if (match) {
+            matchedIds.add(task.id);
+            // Giữ lại task cha
+            if (task.parent) matchedIds.add(task.parent);
+            }
+        }
+
+        // 🔄 Duyệt để giữ lại cả cha lẫn con
+        return tasks.filter(t => matchedIds.has(t.id));
     }
+
   },
   watch: {
     showLotModal(newVal) {
@@ -196,7 +201,7 @@ export default {
       this.lotTasks = tasks;
       this.showLotModal = true;
     },
-    
+
     restoreProductGantt() {
       this.$nextTick(() => {
         const ganttComp = this.$refs.productGantt;

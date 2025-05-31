@@ -4,11 +4,15 @@ import axios from 'axios';
 export default {
   namespaced: true,
   state: {
-    machines: []
+    machines: [],
+    schedules: []
   },
   mutations: {
     SET_MACHINES(state, machines) {
       state.machines = machines;
+    },
+    SET_SCHEDULES(state, schedules) {
+      state.schedules = schedules;
     }
   },
   actions: {
@@ -33,9 +37,16 @@ export default {
         await axios.delete(`/api/machines/${id}` , {
             headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
         });
+    },
+    async fetchSchedules({ commit }) {
+      const res = await axios.get('/api/machine-schedules', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+      });
+      commit('SET_SCHEDULES', res.data);
     }
   },
   getters: {
-    machines: state => state.machines
+    machines: state => state.machines,
+    schedules: state => state.schedules
   }
 };

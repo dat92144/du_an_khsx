@@ -21,7 +21,7 @@
       </thead>
       <tbody>
         <tr v-for="m in machines" :key="m.plan_id">
-          <td>{{ m.machine_id }}</td>
+          <td>{{ m.id }}</td>
           <td>{{ m.product_id }}</td>
           <td>{{ m.current_product }}</td>
           <td>{{ m.process_name }}</td>
@@ -44,26 +44,48 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useStore } from 'vuex';
 import { io } from 'socket.io-client';
 import { Activity } from 'lucide-vue-next';
 
 export default {
   components: { Activity },
   setup() {
-    const machines = ref([]);
+    const store = useStore();
+    const machinesDisplay = ref([]);
     let socket;
 
-    onMounted(() => {
-      socket = io('http://localhost:3001');
+    const allMachines = computed(() => store.getters['machines/machines']);
 
+    onMounted(async () => {
+      await store.dispatch('machines/fetchMachines');
+
+      // Khởi tạo danh sách hiển thị (fix cứng danh sách máy)
+      machinesDisplay.value = allMachines.value.map(machine => ({
+        id: machine.id,
+        name: machine.name,
+        status: 'idle',
+        product_id: null,
+        current_product: '',
+        process_name: '',
+        lot_number: '',
+        quantity_done: 0,
+        quantity_total: 0,
+        end_time: '',
+        timestamp: ''
+      }));
+
+      // WebSocket nhận realtime dữ liệu sản xuất
+      socket = io('http://localhost:3001');
       socket.on('machine-data', data => {
-        console.log('📥 Nhận được dữ liệu từ WebSocket:', data);
-        const idx = machines.value.findIndex(m => m.plan_id === data.plan_id);
+        const idx = machinesDisplay.value.findIndex(m => m.id === data.machine_id);
         if (idx !== -1) {
-          machines.value[idx] = { ...machines.value[idx], ...data };
-        } else {
-          machines.value.push(data);
+          machinesDisplay.value[idx] = {
+            ...machinesDisplay.value[idx],
+            ...data,
+            status: data.status || 'working'
+          };
         }
       });
     });
@@ -72,15 +94,12 @@ export default {
       if (socket) socket.disconnect();
     });
 
-    const formatTime = (isoStr) => {
-      if (!isoStr) return '...';
-      return new Date(isoStr).toLocaleTimeString();
-    };
+    const formatTime = (isoStr) => isoStr ? new Date(isoStr).toLocaleTimeString() : '...';
 
     const getStatusText = (status) => {
       switch (status) {
         case 'working': return '🟢 Đang hoạt động';
-        case 'idle': return '🟡 Đang chờ';
+        case 'idle': return '🟡 Nghỉ';
         case 'completed': return '✅ Hoàn tất';
         case 'error': return '🔴 Lỗi';
         default: return '❓ Không xác định';
@@ -88,14 +107,13 @@ export default {
     };
 
     const getProgress = (machine) => {
-      const done = Number(machine.quantity_done);
-      const total = Number(machine.quantity_total);
-      if (!total || total === 0) return 0;
-      return Math.min(100, Math.floor((done / total) * 100));
+      const done = Number(machine.quantity_done || 0);
+      const total = Number(machine.quantity_total || 0);
+      return total ? Math.min(100, Math.floor((done / total) * 100)) : 0;
     };
 
     return {
-      machines,
+      machines: machinesDisplay,
       formatTime,
       getStatusText,
       getProgress
@@ -103,6 +121,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .progress-bar {

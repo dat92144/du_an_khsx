@@ -22,7 +22,7 @@ const mutations = {
     REMOVE_NOTIFICATION(state, id) {
         state.purchaseRequests = state.purchaseRequests.filter(req => req.id !== id);
         state.notificationCount = state.purchaseRequests.filter(req => req.status === "pending").length;
-        localStorage.setItem("purchaseRequests", JSON.stringify(state.purchaseRequests)); 
+        localStorage.setItem("purchaseRequests", JSON.stringify(state.purchaseRequests));
     }
 };
 const actions = {
@@ -41,7 +41,7 @@ const actions = {
     },
     async approveRequest({ commit }, { id, sendEmail }) {
         try {
-            await axios.post(`/api/purchase-requests/${id}/approve`, {send_email: sendEmail}, {
+            await axios.post(`/api/purchase-requests/${id}/approve`, JSON.stringify({send_email: sendEmail}), {
                 headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
                 "Content-Type": "application/json" }
             });
@@ -70,7 +70,7 @@ const actions = {
             console.error("Lỗi khi xóa thông báo:", error);
         }
     }
-    
+
 };
 
 export default {

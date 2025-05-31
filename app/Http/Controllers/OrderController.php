@@ -271,9 +271,9 @@ class OrderController extends Controller
 
             $gap = max(0, $quantity - $stock - $planned);
 
-            if ($gap <= 0) {
-                continue; // Đủ hàng hoặc đã lên kế hoạch rồi
-            }
+            // if ($gap <= 0) {
+            //     continue; // Đủ hàng hoặc đã lên kế hoạch rồi
+            // }
 
             $po = ProductionOrder::create([
                 'id' => $this->generateProductionOrderId(),

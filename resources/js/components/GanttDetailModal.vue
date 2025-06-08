@@ -21,23 +21,49 @@ export default {
     title: { type: String, default: "Chi tiết Lô" },
     tasks: { type: Array, default: () => [] }
   },
+
+  data() {
+    return {
+      localTasks: []
+    };
+  },
+
   watch: {
     visible(newVal) {
       if (newVal) {
-        this.$nextTick(() => {
-          this.renderGantt();
-        });
+        this.localTasks = [...this.tasks];
+        this.$nextTick(() => this.renderGantt());
+      } else {
+        this.clearGantt();
+      }
+    },
+    tasks(newVal) {
+      this.localTasks = [...newVal];
+      if (this.visible) {
+        this.$nextTick(() => this.renderGantt());
       }
     }
   },
+
+  beforeDestroy() {
+    this.clearGantt();
+  },
+
   methods: {
     renderGantt() {
       const gantt = window.gantt;
-      if (!this.$refs.ganttDetail || !this.tasks.length) return;
+      if (!this.$refs.ganttDetail || !this.localTasks.length) return;
 
-      gantt.clearAll(); // Xóa dữ liệu cũ
+      gantt.clearAll();
       gantt.init(this.$refs.ganttDetail);
-      gantt.parse({ data: this.tasks, links: [] });
+      gantt.parse({ data: this.localTasks, links: [] });
+    },
+
+    clearGantt() {
+      const gantt = window.gantt;
+      if (this.$refs.ganttDetail && gantt) {
+        gantt.clearAll();
+      }
     }
   }
 };

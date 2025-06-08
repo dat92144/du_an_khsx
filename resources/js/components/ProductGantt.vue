@@ -5,68 +5,131 @@
         📊 Xuất Excel
       </button>
     </div>
-    <div ref="gantt" style="width: 100%; height: 600px;"></div>
+    <div ref="gantt" style="width: 100%; height: 600px; min-height: 300px;"></div>
   </div>
 </template>
 
-
 <script>
+import io from "socket.io-client";
 import * as XLSX from "xlsx";
+
 export default {
   name: "ProductGantt",
   emits: ["show-lot-gantt"],
   props: ["tasks", "links"],
-  mounted() {
-    const gantt = window.gantt;
 
-    // Cấu hình Gantt
-    gantt.config.date_format = "%Y-%m-%d %H:%i:%s";
-    gantt.config.duration_unit = "hour";
-    gantt.config.scale_height = 60;
-    gantt.config.min_column_width = 80;
-    gantt.config.scales = [
-      { unit: "day", step: 1, format: "%d %M, %Y" },
-      { unit: "hour", step: 1, format: "%H:%i" }
-    ];
-    gantt.config.columns = [
-      { name: "text", label: "Sản phẩm / Lô", tree: true, width: "*" },
-      { name: "start_date", label: "Bắt đầu", align: "center" },
-      { name: "duration", label: "Thời lượng (giờ)", align: "center" },
-      {
-        name: "progress",
-        label: "Tiến độ",
-        align: "center",
-        template: task => `${Math.round((task.progress || 0) * 100)}%`
-      }
-    ];
-    gantt.config.open_tree_initially = false;
-    gantt.config.fit_tasks = true;
-    gantt.config.auto_types = true;
-
-    // Init và parse chỉ 1 lần
-    gantt.init(this.$refs.gantt);
-    if (this.tasks && this.tasks.length) {
-      gantt.clearAll();
-      gantt.parse({ data: this.tasks, links: this.links || [] });
-    }
-
-    // Sự kiện click lô
-    gantt.attachEvent("onTaskClick", async (id) => {
-      if (id.startsWith("lot-")) {
-        const [_, orderId, lot, type,productId] = id.split("-");
-        await this.loadLotDetail(productId, lot, type);
-      }
-      return true;
-    });
+  data() {
+    return {
+      localTasks: [],
+      socket: null,
+      ganttInited: false,
+      observer: null
+    };
   },
-  methods: {
-    renderGantt() {
-        const gantt = window.gantt;
-        if (!this.$refs.gantt || !this.tasks.length) return;
 
-        gantt.init(this.$refs.gantt);
-        gantt.clearAll();
-        gantt.parse({ data: this.tasks, links: this.links || [] });
+  mounted() {
+    this.localTasks = [...this.tasks];
+
+    // Setup socket
+    this.socket = io("http://localhost:3001");
+
+    this.socket.on("product-progress", ({ product_id, progress }) => {
+      const gantt = window.gantt;
+      const taskId = product_id;
+      if (gantt.isTaskExists(taskId)) {
+        const task = gantt.getTask(taskId);
+        task.progress = progress;
+        gantt.updateTask(taskId);
+      }
+    });
+
+    // Setup MutationObserver để đảm bảo renderGantt khi visible
+    this.observer = new MutationObserver(() => {
+      if (this.$refs.gantt && this.$refs.gantt.offsetHeight > 0 && !this.ganttInited) {
+        console.log("🟢 ProductGantt container visible → initGantt()");
+        this.renderGantt();
+      }
+    });
+
+    this.observer.observe(this.$refs.gantt, { attributes: true, attributeFilter: ['style', 'class'] });
+  },
+
+  watch: {
+    tasks(newVal) {
+      this.localTasks = [...newVal];
+      this.$nextTick(() => this.renderGantt());
+    }
+  },
+
+  beforeDestroy() {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+  },
+
+  methods: {
+    initGantt() {
+      if (this.ganttInited) return;
+
+      const gantt = window.gantt;
+
+      gantt.config.date_format = "%Y-%m-%d %H:%i:%s";
+      gantt.config.duration_unit = "hour";
+      gantt.config.scale_height = 60;
+      gantt.config.min_column_width = 80;
+
+      gantt.config.scales = [
+        { unit: "day", step: 1, format: "%d %M, %Y" },
+        { unit: "hour", step: 1, format: "%H:%i" }
+      ];
+
+      gantt.config.columns = [
+        { name: "text", label: "Sản phẩm / Lô", tree: true, width: "*" },
+        { name: "start_date", label: "Bắt đầu", align: "center" },
+        { name: "duration", label: "Thời lượng (giờ)", align: "center" },
+        {
+          name: "progress",
+          label: "Tiến độ",
+          align: "center",
+          template: task => `${Math.round((task.progress || 0) * 100)}%`
+        }
+      ];
+
+      gantt.config.open_tree_initially = false;
+      gantt.config.fit_tasks = true;
+      gantt.config.auto_types = true;
+
+      gantt.init(this.$refs.gantt);
+      this.ganttInited = true;
+
+      // 👉 attachEvent phải bind SAU initGantt() để luôn có hiệu lực
+      gantt.attachEvent("onTaskClick", async (id) => {
+        if (id.startsWith("lot-")) {
+          const [_, orderId, lot, type, productId] = id.split("-");
+          await this.loadLotDetail(productId, lot, type);
+        }
+        return true;
+      });
+    },
+
+    renderGantt() {
+      const gantt = window.gantt;
+      if (!gantt) return;
+
+      // Chỉ init khi container visible
+      if (!this.ganttInited && this.$refs.gantt.offsetHeight > 0) {
+        this.initGantt();
+      }
+
+      if (!this.localTasks.length || !this.ganttInited) return;
+
+      gantt.clearAll();
+      gantt.parse({ data: this.localTasks, links: this.links || [] });
     },
 
     async loadLotDetail(productId, lot, type) {
@@ -103,6 +166,6 @@ export default {
 
       XLSX.writeFile(workbook, "bao-cao-tien-do.xlsx");
     }
-   }
+  }
 };
 </script>

@@ -121,7 +121,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // MRP (nếu cần)
         // Route::get('/mrp', [PurchaseController::class, 'caculateMRP']);
-
+        Route::get('/realtime/machine-status', [GanttController::class, 'getRealtimeMachineStatus']);
         Route::get('/gantt/orders', [GanttController::class, 'forOrders']);
         Route::get('/gantt/product-lot', [GanttController::class, 'productWithLots']);
         Route::get('/gantt/lot-detail', [GanttController::class, 'getLotDetail']);

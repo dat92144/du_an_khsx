@@ -31,21 +31,21 @@
     </div>
 
     <OrderGantt
-      v-if="selectedMode === 'order'"
+      v-show="selectedMode === 'order'"
       ref="orderGantt"
       :tasks="filteredTasks"
       :links="orderLinks"
     />
 
     <MachineGantt
-      v-if="selectedMode === 'machine'"
+      v-show="selectedMode === 'machine'"
       ref="machineGantt"
       :tasks="filteredTasks"
       :links="[]"
     />
 
     <ProductGantt
-      v-if="selectedMode === 'product'"
+      v-show="!showLotModal && selectedMode === 'product'"
       ref="productGantt"
       :tasks="filteredTasks"
       :links="[]"
@@ -70,6 +70,7 @@ import GanttDetailModal from '../components/GanttDetailModal.vue';
 import { BarChart, Package, Cog, Factory } from 'lucide-vue-next';
 import { mapState, mapActions, mapGetters } from 'vuex';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 export default {
   components: {
@@ -80,6 +81,7 @@ export default {
     GanttDetailModal,
     BarChart
   },
+
   data() {
     return {
       selectedMode: 'default',
@@ -99,6 +101,7 @@ export default {
       lotTitle: ""
     };
   },
+
   computed: {
     ...mapState('gantt', {
       orderTasks: state => state.orderGantt.data,
@@ -116,57 +119,83 @@ export default {
     },
 
     filteredTasks() {
-        const keyword = this.searchKeyword.toLowerCase();
-        const tasks = this.getCurrentTasks;
+      const keyword = this.searchKeyword.toLowerCase();
+      const tasks = this.getCurrentTasks;
 
-        if (!this.searchKeyword) return tasks;
+      if (!this.searchKeyword) return tasks;
 
-        const matchedIds = new Set();
-        const taskMap = {};
+      const matchedIds = new Set();
+      const taskMap = {};
 
-        // Lưu vào map để dễ truy cập
-        for (const task of tasks) {
-            taskMap[task.id] = task;
-        }
-
-        // Xác định task phù hợp
-        for (const task of tasks) {
-            const text = task.text?.toLowerCase() || "";
-            const startDate = (task.start_date ? String(task.start_date) : "").toLowerCase();
-            const duration = String(task.duration || "");
-            const progress = String(Math.round((task.progress || 0) * 100));
-
-            const match =
-            text.includes(keyword) ||
-            startDate.includes(keyword) ||
-            duration.includes(keyword) ||
-            progress.includes(keyword);
-
-            if (match) {
-            matchedIds.add(task.id);
-            // Giữ lại task cha
-            if (task.parent) matchedIds.add(task.parent);
-            }
-        }
-
-        // 🔄 Duyệt để giữ lại cả cha lẫn con
-        return tasks.filter(t => matchedIds.has(t.id));
-    }
-
-  },
-  watch: {
-    showLotModal(newVal) {
-      if (!newVal && this.selectedMode === 'product') {
-        this.restoreProductGantt();
+      for (const task of tasks) {
+        taskMap[task.id] = task;
       }
-    },
-    filteredTasks() {
-      this.refreshVisibleGantt();
+
+      for (const task of tasks) {
+        const text = task.text?.toLowerCase() || "";
+        const startDate = (task.start_date ? String(task.start_date) : "").toLowerCase();
+        const duration = String(task.duration || "");
+        const progress = String(Math.round((task.progress || 0) * 100));
+
+        const match =
+          text.includes(keyword) ||
+          startDate.includes(keyword) ||
+          duration.includes(keyword) ||
+          progress.includes(keyword);
+
+        if (match) {
+          matchedIds.add(task.id);
+          if (task.parent) matchedIds.add(task.parent);
+        }
+      }
+
+      return tasks.filter(t => matchedIds.has(t.id));
     }
   },
   mounted() {
     this.loadDashboardData();
+
+    // Thêm socket:
+    this.socket = io('http://localhost:3001');
+
+    this.socket.on('order-progress', ({ order_id, product_id, progress }) => {
+        this.$store.commit('gantt/SET_ORDER_PROGRESS', { order_id, progress });
+    });
+
+    this.socket.on('product-progress', ({ product_id, progress }) => {
+        this.$store.commit('gantt/SET_PRODUCT_PROGRESS', { product_id, progress });
+    });
+
+    this.socket.on('machine-data', ({ plan_id, progress }) => {
+        this.$store.commit('gantt/SET_MACHINE_PLAN_PROGRESS', { plan_id, progress: progress / 100 });
+    });
+    },
+
+    beforeUnmount() {
+    if (this.socket) {
+        this.socket.disconnect();
+    }
+ },
+
+  watch: {
+    showLotModal(newVal) {
+      if (!newVal && this.selectedMode === 'product') {
+        // Khi đóng modal → gọi refreshVisibleGantt để đảm bảo ProductGantt render lại
+        this.$nextTick(() => {
+          this.refreshVisibleGantt();
+        });
+      }
+    },
+
+    selectedMode() {
+      this.refreshVisibleGantt();
+    },
+
+    filteredTasks() {
+      this.refreshVisibleGantt();
+    }
   },
+
   methods: {
     ...mapActions('productionOrders', ['fetchProductionPlans']),
     ...mapActions('gantt', [
@@ -202,15 +231,6 @@ export default {
       this.showLotModal = true;
     },
 
-    restoreProductGantt() {
-      this.$nextTick(() => {
-        const ganttComp = this.$refs.productGantt;
-        if (ganttComp && ganttComp.renderGantt) {
-          ganttComp.renderGantt();
-        }
-      });
-    },
-
     refreshVisibleGantt() {
       this.$nextTick(() => {
         const refMap = {
@@ -219,8 +239,12 @@ export default {
           machine: this.$refs.machineGantt
         };
         const ganttComp = refMap[this.selectedMode];
-        if (ganttComp && ganttComp.renderGantt) {
-          ganttComp.renderGantt();
+        if (ganttComp) {
+          // Reset ganttInited → đảm bảo init lại khi tab active
+          ganttComp.ganttInited = false;
+          if (ganttComp.renderGantt) {
+            ganttComp.renderGantt();
+          }
         }
       });
     }

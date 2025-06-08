@@ -20,7 +20,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="m in machines" :key="m.plan_id">
+        <tr v-for="m in machines" :key="m.id">
           <td>{{ m.id }}</td>
           <td>{{ m.product_id }}</td>
           <td>{{ m.current_product }}</td>
@@ -57,11 +57,12 @@ export default {
     let socket;
 
     const allMachines = computed(() => store.getters['machines/machines']);
+    const realtimeMachineStatus = computed(() => store.getters['gantt/realtimeMachineStatus']);
 
     onMounted(async () => {
+      // Load danh sách máy ban đầu
       await store.dispatch('machines/fetchMachines');
 
-      // Khởi tạo danh sách hiển thị (fix cứng danh sách máy)
       machinesDisplay.value = allMachines.value.map(machine => ({
         id: machine.id,
         name: machine.name,
@@ -76,7 +77,22 @@ export default {
         timestamp: ''
       }));
 
-      // WebSocket nhận realtime dữ liệu sản xuất
+      // 🚀 Load trạng thái realtime từ API
+      await store.dispatch('gantt/fetchRealtimeMachineStatus');
+
+      // Fill dữ liệu realtime vào machinesDisplay
+      for (const m of realtimeMachineStatus.value) {
+        const idx = machinesDisplay.value.findIndex(machine => machine.id === m.machine_id);
+        if (idx !== -1) {
+          machinesDisplay.value[idx] = {
+            ...machinesDisplay.value[idx],
+            ...m,
+            status: m.status || 'working'
+          };
+        }
+      }
+
+      // Kết nối WebSocket
       socket = io('http://localhost:3001');
       socket.on('machine-data', data => {
         const idx = machinesDisplay.value.findIndex(m => m.id === data.machine_id);
@@ -102,7 +118,7 @@ export default {
         case 'idle': return '🟡 Nghỉ';
         case 'completed': return '✅ Hoàn tất';
         case 'error': return '🔴 Lỗi';
-        default: return '❓ Không xác định';
+        default: return '🟡 Nghỉ';
       }
     };
 
@@ -121,7 +137,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .progress-bar {

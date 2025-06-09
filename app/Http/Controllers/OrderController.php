@@ -267,6 +267,7 @@ class OrderController extends Controller
             $planned = DB::table('production_orders')
                 ->where('producing_status', '!=', 'completed')
                 ->where($productType === 'product' ? 'product_id' : 'semi_finished_product_id', $targetId)
+                ->where('order_id', $order->id)
                 ->sum('order_quantity');
 
             $gap = max(0, $quantity - $stock - $planned);

@@ -55,6 +55,7 @@ class AutoPurchaseByProductionPlan extends Command
 
                 foreach ($orders as $order) {
                     $productId = $order->product_id ?? $order->semi_finished_product_id;
+                    $productType = $order->product_id ? 'product' : 'semi_finished_product';
                     $unit_order = DB::table('order_details')
                         ->where('order_id', $order->order_id)
                         ->where(function ($query) use ($productId) {
@@ -70,23 +71,27 @@ class AutoPurchaseByProductionPlan extends Command
                         $orderQuantity = $orderQuantity * 0.05;
                         $this->info("⚖️ Quy đổi đơn vị từ bao sang tấn: {$order->order_quantity} bao → $orderQuantity tấn");
                     }
-                    $orderQuantity = $order->order_quantity;
                     $startDate = Carbon::parse($order->order_date);
 
                     $productInventory = Inventory::where('item_id', $productId)
-                        ->where('item_type', 'product')->first();
+                        ->where('item_type', $productType)
+                        ->first();
+                    $productInventoryQty = $productInventory ? $productInventory->quantity : 0;
 
+                    $productInventoryInTon = ($productType === 'product')
+                        ? ($productInventoryQty * 0.05)
+                        : $productInventoryQty;
                     $specs = Spec::where('product_id', $productId)->get();
                     $productCycleTime = $specs->sum('cycle_time');
-                    $productPerDay = $productCycleTime > 0 ? (8 * 60 / $productCycleTime) : 0;
+                    $productPerDay = $productCycleTime > 0 ? (24 * 60 / $productCycleTime) : 0;
 
                     $bomItems = BomItem::where('bom_id', $order->bom_id)->get();
 
                     foreach ($bomItems as $bomItem) {
                         $materialId = $bomItem->input_material_id;
                         $inputType = $bomItem->input_material_type;
-                        $remainingOrderQuantity = max(0, $orderQuantity - ($productInventory->quantity ?? 0));
-                        $requiredQuantity = $bomItem->quantity_input * $remainingOrderQuantity;
+                        $remainingOrderQuantity = max(0, $orderQuantity - $productInventoryInTon);
+                        $requiredQuantity = $bomItem->quantity_input/100 * $remainingOrderQuantity;
 
                         $inventory = Inventory::where('item_id', $materialId)
                             ->where('item_type', $inputType)
